@@ -140,13 +140,13 @@ func TestPostitionalIntersect(t *testing.T) {
 
 	list1 = append(list1, Posting{1, []int64{2, 5, 8}})
 	list1 = append(list1, Posting{5, []int64{6, 9, 20}})
-	list1 = append(list1, Posting{8, []int64{3, 8, 89}})
+	list1 = append(list1, Posting{8, []int64{3, 37, 89}})
 
 	list2 = append(list2, Posting{1, []int64{1, 6, 7}})
 	list2 = append(list2, Posting{4, []int64{8, 23, 91}})
 	list2 = append(list2, Posting{8, []int64{25, 39, 90}})
 
-	var res = list1.PositionalIntersect(&list2, 1)
+	var res = list1.PositionalIntersect(&list2, 2)
 
 	if len(res) != 2 {
 		t.Errorf("wrong posting count, expected 2, got %d", len(res))
@@ -178,7 +178,7 @@ func TestPostitionalIntersect(t *testing.T) {
 	}
 
 	arrayEqual = true
-	correct = []int64{89, 90}
+	correct = []int64{37, 39, 89, 90}
 
 	if len(res[1].Pos) != len(correct) {
 		arrayEqual = false
@@ -191,6 +191,6 @@ func TestPostitionalIntersect(t *testing.T) {
 	}
 
 	if !arrayEqual {
-		t.Errorf("wrong positions in second posting, expected [1,2,5,6,7,8],got %v", res[1].Pos)
+		t.Errorf("wrong positions in second posting, expected %v,got %v", correct, res[1].Pos)
 	}
 }

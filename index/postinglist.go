@@ -76,6 +76,8 @@ func (pl *PostingList) positionalIntersect(other *PostingList, k int64, kCond fu
 		if (*pl)[p1].DocID == (*other)[p2].DocID {
 			l := make([]int64, 0)
 			outPos := make([]int64, 0)
+			inList := make(map[int64]bool)
+
 			var pos1 = (*pl)[p1].Pos
 			var pos2 = (*other)[p2].Pos
 			var pp1, pp2 int
@@ -97,9 +99,15 @@ func (pl *PostingList) positionalIntersect(other *PostingList, k int64, kCond fu
 					}
 				}
 
-				if len(l) > 0 { //Geht das schneller?
-					outPos = append(outPos, l...)
+				if len(l) > 0 {
 					outPos = append(outPos, pos1[pp1])
+				}
+
+				for _, val := range l {
+					if !inList[val] {
+						outPos = append(outPos, val)
+						inList[val] = true
+					}
 				}
 				pp1 += 1
 			}
