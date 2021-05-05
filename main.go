@@ -18,6 +18,7 @@ func main() {
 
 	flag.StringVar(&docSource, "doc", "", "path to input file (txt)")
 	flag.StringVar(&dictSource, "dict", "", "path to dict dump (skip index build) - if docSource also provided saves dict")
+	flag.Parse()
 
 	var indexInstance *index.Index
 
