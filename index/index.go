@@ -22,7 +22,7 @@ func NewIndexFromFile(path string) (*Index, error) {
 }
 
 ///INDEX SPECIFIC METHODS / PLACEHOLDER
-func (i *Index) AddTerm(term string, posting *PostingListEntry) {
+func (i *Index) AddTerm(term string, posting *Posting) {
 	//TODO
 }
 
