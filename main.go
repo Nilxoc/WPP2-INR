@@ -24,7 +24,7 @@ func main() {
 
 	if docSource != "" {
 		//CREATE INDEX
-		indexInstance = index.NewIndexEmpty()
+		indexInstance = index.NewIndexEmpty(1, 1, 0.5)
 
 		tokenizer := tokenizer.InitTokenizer(indexInstance)
 
@@ -36,6 +36,7 @@ func main() {
 		if err := tokenizer.ParseFile(absDocPath); err != nil {
 			panic(err)
 		}
+		fmt.Printf("File Parsed. Found %d terms\n", indexInstance.Len())
 
 		if dictSource != "" {
 			//SAVE INDEX
@@ -47,8 +48,7 @@ func main() {
 				panic(err)
 			}
 		}
-	}
-	if dictSource != "" {
+	} else if dictSource != "" {
 		//READ INDEX
 		absDictPath, err := file.AbsPath(dictSource)
 		if err != nil {
@@ -58,6 +58,8 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+
+		fmt.Printf("Dump loaded. Containing %d terms\n", indexInstance.Len())
 	}
 
 	if dictSource == "" && docSource == "" {
