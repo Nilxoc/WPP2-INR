@@ -1,5 +1,7 @@
 package tokenizer
 
-func TestTokenizer() {
+import "testing"
+
+func TestTokenizer(t *testing.T) {
 
 }

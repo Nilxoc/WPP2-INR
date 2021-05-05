@@ -53,10 +53,10 @@ func (t *Tokenizer) evaluateText(text string, docID int) error {
 	tokensRaw := strings.Split(text, " ")
 	tokenSub := 0
 
-	hm := make(map[string]index.Posting)
+	hm := make(map[string]*index.Posting)
 
 	for i, token := range tokensRaw {
-		token = strings.Trim(token, "()\".;=-:,|][{}%/")
+		token = strings.ToLower(strings.Trim(token, "()\".;=-:,|][{}%/"))
 
 		if token == "" {
 			tokenSub += 1
@@ -66,13 +66,18 @@ func (t *Tokenizer) evaluateText(text string, docID int) error {
 		if post, f := hm[token]; f {
 			post.Pos = append(post.Pos, int64((i+1)-tokenSub))
 		} else {
-			hm[token] = index.Posting{}
+			tarr := make([]int64, 1)
+			tarr[0] = int64((i + 1) - tokenSub)
+			hm[token] = &index.Posting{
+				DocID: int64(docID),
+				Pos:   tarr,
+			}
 		}
 
 	}
 
 	for token, posting := range hm {
-		t.index.AddTerm(token, &posting)
+		t.index.AddTerm(token, posting)
 	}
 
 	return nil

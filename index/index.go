@@ -1,7 +1,7 @@
 package index
 
 import (
-	"fmt"
+	"g1.wpp2.hsnr/inr/boolret/file"
 )
 
 type IndexEntry struct {
@@ -9,16 +9,19 @@ type IndexEntry struct {
 	Docs PostingList
 }
 
-type Index map[string]IndexEntry
+type Index map[string]*IndexEntry
 
 func NewIndexEmpty() *Index {
-	//TODO: Create & initialize empty index
-	return nil
+	idx := make(Index)
+	return &idx
 }
 
 func NewIndexFromFile(path string) (*Index, error) {
-	//Load Index Dump from file and initialize index with it (skip tokenizer)
-	return nil, fmt.Errorf("Not Implemented!")
+	idx, err := loadIndex(path)
+	if err != nil {
+		return nil, err
+	}
+	return idx, nil
 }
 
 ///INDEX SPECIFIC METHODS / PLACEHOLDER
@@ -31,10 +34,21 @@ func (i *Index) AddTerm(term string, posting *Posting) {
 			Docs: make(PostingList, 1),
 		}
 		t.Docs[0] = *posting
-		(*i)[term] = t
+		(*i)[term] = &t
 	}
 }
 
+func (i *Index) GetTerm(term string) *IndexEntry {
+	if e, f := (*i)[term]; f {
+		return e
+	}
+	return nil
+}
+
 func (i *Index) SaveIndex(path string) error {
-	return fmt.Errorf("Not Implemented")
+	return file.SaveIndex(i, path)
+}
+
+func (i *Index) Len() int {
+	return len(*i)
 }

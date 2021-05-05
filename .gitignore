@@ -6,6 +6,7 @@
 *.dylib
 boolret
 doc_dump.txt
+dump.bin
 
 # Test binary, built with `go test -c`
 *.test
