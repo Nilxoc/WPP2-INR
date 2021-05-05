@@ -24,27 +24,44 @@ func (t *Tokenizer) ParseFile(path string) error {
 
 	//Creating a Array of lines for each doc
 	docs := strings.Split(fileString, "\n")
-	for _, doc := range docs {
+	for docCounter, doc := range docs {
 		//Loop over lines (documents)
 		doc = strings.TrimSpace(doc)
 		if doc == "" {
 			continue
 		}
-
+		//lines: 1: Doc-Name, 2: Doc
 		parts := strings.Split(doc, "\t")
-		if len(parts) != 3 {
-			return fmt.Errorf("Invalid Line")
+		if len(parts) != 4 {
+			return fmt.Errorf("invalid Line")
 		}
-		text := strings.TrimSpace(parts[2])
+		text := strings.TrimSpace(parts[2]) + " " + strings.TrimSpace(parts[3])
 
-		if err := t.evaluateText(text); err != nil {
+		if err := t.evaluateText(text, docCounter+1); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (t *Tokenizer) evaluateText(text string) error {
-	fmt.Println(text)
+func (t *Tokenizer) evaluateText(text string, docID int) error {
+	tokensRaw := strings.Split(text, " ")
+	tokenSub := 0
+
+	for i, token := range tokensRaw {
+		token = strings.Trim(token, "()\".;=-:,|][{}%/")
+
+		if token == "" {
+			tokenSub += 1
+			continue
+		}
+
+		t.index.AddTerm(token, &index.PostingListEntry{
+			DocID: int64(docID),
+			Pos:   int64((i + 1) - tokenSub),
+		})
+
+	}
+
 	return nil
 }
