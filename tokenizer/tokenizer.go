@@ -21,6 +21,11 @@ func (t *Tokenizer) ParseFile(path string) error {
 	if err != nil {
 		return err
 	}
+	return t.ParseString(fileString)
+
+}
+
+func (t *Tokenizer) ParseString(fileString string) error {
 
 	//Creating a Array of lines for each doc
 	docs := strings.Split(fileString, "\n")
