@@ -24,7 +24,7 @@ func main() {
 
 	if docSource != "" {
 		//CREATE INDEX
-		indexInstance = index.NewIndexEmpty()
+		indexInstance = index.NewIndexEmpty(1, 1, 0.5)
 
 		tokenizer := tokenizer.InitTokenizer(indexInstance)
 

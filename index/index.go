@@ -9,11 +9,21 @@ type IndexEntry struct {
 	Docs PostingList
 }
 
-type Index map[string]*IndexEntry
+type Index struct {
+	index map[string]*IndexEntry
+	k     int
+	r     int
+	J     float32
+}
 
-func NewIndexEmpty() *Index {
-	idx := make(Index)
-	return &idx
+func NewIndexEmpty(k int, r int, J float32) *Index {
+	idx := &Index{
+		k: k,
+		r: r,
+		J: J,
+	}
+	idx.index = make(map[string]*IndexEntry)
+	return idx
 }
 
 func NewIndexFromFile(path string) (*Index, error) {
@@ -26,7 +36,7 @@ func NewIndexFromFile(path string) (*Index, error) {
 
 ///INDEX SPECIFIC METHODS / PLACEHOLDER
 func (i *Index) AddTerm(term string, posting *Posting) {
-	if entry, found := (*i)[term]; found {
+	if entry, found := i.index[term]; found {
 		entry.Docs = append(entry.Docs, *posting)
 	} else {
 		t := IndexEntry{
@@ -34,14 +44,18 @@ func (i *Index) AddTerm(term string, posting *Posting) {
 			Docs: make(PostingList, 1),
 		}
 		t.Docs[0] = *posting
-		(*i)[term] = &t
+		i.index[term] = &t
 	}
 }
 
 func (i *Index) GetTerm(term string) *IndexEntry {
-	if e, f := (*i)[term]; f {
+	if e, f := i.index[term]; f {
 		return e
 	}
+	return nil
+}
+
+func (i *Index) getCorrectedTerm(term string) *IndexEntry {
 	return nil
 }
 
@@ -50,5 +64,5 @@ func (i *Index) SaveIndex(path string) error {
 }
 
 func (i *Index) Len() int {
-	return len(*i)
+	return len(i.index)
 }
