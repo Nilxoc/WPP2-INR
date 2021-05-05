@@ -260,3 +260,64 @@ func TestPhraseIntersect(t *testing.T) {
 		t.Errorf("wrong positions in second posting, expected %v,got %v", correct, res[1].Pos)
 	}
 }
+
+func TestDifference(t *testing.T) {
+	var list1 = make(PostingList, 0)
+	var list2 = make(PostingList, 0)
+
+	list1 = append(list1, Posting{1, []int64{2, 5, 8}})
+	list1 = append(list1, Posting{5, []int64{6, 9, 20}})
+	list1 = append(list1, Posting{8, []int64{3, 8, 89}})
+
+	list2 = append(list2, Posting{1, []int64{1, 6, 7}})
+	list2 = append(list2, Posting{4, []int64{8, 23, 91}})
+	list2 = append(list2, Posting{8, []int64{25, 39, 90}})
+
+	var res = list1.Difference(&list2)
+
+	if len(res) != 2 {
+		t.Errorf("wrong posting count, expected 2, got %d", len(res))
+	}
+
+	if res[0].DocID != 4 {
+		t.Errorf("First DocID Wrong, Expected 4, got %d", res[0].DocID)
+	}
+
+	var arrayEqual = true
+	var correct = []int64{8, 23, 91}
+
+	if len(res[0].Pos) != len(correct) {
+		arrayEqual = false
+	} else {
+		for i, v := range res[0].Pos {
+			if v != correct[i] {
+				arrayEqual = false
+			}
+		}
+	}
+
+	if !arrayEqual {
+		t.Errorf("wrong positions in first posting, expected [1,2,5,6,7,8],got %v", res[0].Pos)
+	}
+
+	if res[1].DocID != 5 {
+		t.Errorf("second docid Wrong, expected 5, got %d", res[1].DocID)
+	}
+
+	arrayEqual = true
+	correct = []int64{6, 9, 20}
+
+	if len(res[1].Pos) != len(correct) {
+		arrayEqual = false
+	} else {
+		for i, v := range res[1].Pos {
+			if v != correct[i] {
+				arrayEqual = false
+			}
+		}
+	}
+
+	if !arrayEqual {
+		t.Errorf("wrong positions in fourth posting, expected [1,2,5,6,7,8],got %v", res[3].Pos)
+	}
+}

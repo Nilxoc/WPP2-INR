@@ -186,3 +186,31 @@ func (pl *PostingList) PhraseIntersect(others []*PostingList) PostingList {
 	}
 	return res
 }
+
+func (pl *PostingList) Difference(other *PostingList) PostingList {
+	answer := make(PostingList, 0)
+	var p1, p2 int
+	for p1 < len(*pl) && p2 < len(*other) {
+		if (*pl)[p1].DocID == (*other)[p2].DocID {
+			p1 += 1
+			p2 += 1
+		} else if (*pl)[p1].DocID < (*other)[p2].DocID {
+			answer = append(answer, (*pl)[p1])
+			p1 += 1
+		} else {
+			answer = append(answer, (*other)[p2])
+			p2 += 1
+		}
+	}
+
+	for p1 < len(*pl) {
+		answer = append(answer, (*pl)[p1])
+		p1 += 1
+	}
+
+	for p2 < len(*other) {
+		answer = append(answer, (*other)[p2])
+		p1 += 1
+	}
+	return answer
+}
