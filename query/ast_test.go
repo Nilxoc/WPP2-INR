@@ -9,15 +9,19 @@ func TestParseAnd(t *testing.T) {
 }
 
 func TestParseProximity(t *testing.T) {
-	parseNoError(t, "term4 /3 term5")
+	parseNoError(t, "term4 /2 term5")
 }
 
 func TestParsePhrase(t *testing.T) {
-	parseNoError(t, "[term1 term2 term3]")
+	parseNoError(t, `term1 term2 term3`)
+}
+
+func TestParsePhraseNested(t *testing.T) {
+	parseNoError(t, `term1 AND "term2 term3"`)
 }
 
 func TestParseBrackets(t *testing.T) {
-	parseNoError(t, "( term1 AND term2 )")
+	parseNoError(t, "( term1 AND term2 ) AND term3")
 }
 
 func ParseFull(t *testing.T) {

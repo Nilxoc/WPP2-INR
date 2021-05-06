@@ -29,50 +29,71 @@ func Evaluate(q *AstQuery) (*index.PostingList, error) {
 
 // AST-Nodes
 
-type Term struct {
-	Group  *Group   `parser:"@@ |"`
-	Expr   *BinExpr `parser:"@@ |"`
-	Phrase *Phrase  `parser:"@@ |"`
-	Value  *Value   `parser:"@@"`
-}
-
-//goland:noinspection GoVetStructTag
-type Group struct {
-	Expr *Term `"\"" @@* "\""`
+type ProxTerm struct {
+	K   *string `parser:"@Proxim"`
+	RHS *Value  `parser:"@@"`
 }
 
 type BinExpr struct {
-	Left  *Value        `parser:"@@"`
-	Right []*CondOpTerm `parser:"@@*"`
+	LHS *Term    `parser:"@@"`
+	OP  []*BinOp `parser:"@@*"`
 }
 
-type CondOpTerm struct {
-	Op    *string `parser:"@('AND'|'OR'|'AND NOT'|Proxim)"`
+type BinOp struct {
+	OP  *string `parser:"@BoolOp"`
+	RHS *Term   `parser:"@@"`
+}
+
+type Right struct {
+	Op    *string `parser:"@Oper"`
 	Value *Value  `parser:"@@"`
 }
 
 type Value struct {
-	Value *string `parser:"@Ident"`
+	Text *string `parser:"@Ident"`
+	//Phrase        *string     `parser:"| @String"`
+	Subexpression *Expression `parser:"| '(' @@ ')'"`
+}
+
+type Term struct {
+	Left  *Value   `parser:"@@"`
+	Right []*Value `@@*`
+}
+
+type OpTerm struct {
+	OP   string  `parser:"( @BoolOp |"`
+	K    *string `parser:"@Proxim )"`
+	Term *Term   `parser:"@@"`
+}
+
+type Expression struct {
+	Left  *Term     `parser:"@@"`
+	Right []*OpTerm `parser:"@@*"`
 }
 
 //goland:noinspection GoVetStructTag
 type Phrase struct {
-	Value []*string `"\"" @@* "\""`
+	Value []*string `"\"" @Ident* "\""`
 }
 
 var lexer = stateful.MustSimple([]stateful.Rule{
-	{`Ident`, `[a-zA-Z][a-zA-Z_\d]*`, nil},
-	{`Proxim`, `\/\d`, nil},
-	{"String", `"(\\"|[^"])*"`, nil},
-	{"whitespace", `\s+`, nil}})
+	{"BoolOp", `(?i)AND|OR`, nil},
+	{"Ident", `[a-zA-Z_]\w*`, nil},
+	//{"String", `(\\"|[^"])*`, nil},
+	{"Punct", `[-[!@#$%^&*()+_={}\|:;"'<,>.?/]|]`, nil},
+	{`Proxim`, `/\d`, nil},
+	{"Number", `[-+]?(\d*\.)?\d+`, nil},
+	{"EOL", `[\n\r]+`, nil},
+	{"whitespace", `[ \t]+`, nil},
+})
 
-var parser = participle.MustBuild(&Term{},
+var parser = participle.MustBuild(&Expression{},
 	participle.Lexer(lexer),
-	//participle.UseLookahead(1),
+	//participle.UseLookahead(3),
 )
 
-func Parse(query string) (*Term, error) {
-	gram := &Term{}
+func Parse(query string) (*Expression, error) {
+	gram := &Expression{}
 	err := parser.ParseString("", query, gram)
 	if err != nil {
 		return nil, fmt.Errorf("cannot parse string: %v", err)
@@ -80,6 +101,6 @@ func Parse(query string) (*Term, error) {
 	return gram, nil
 }
 
-func Print(r *Term) {
+func Print(r *Expression) {
 	repr.Println(r, repr.Indent(" "), repr.OmitEmpty(true))
 }
