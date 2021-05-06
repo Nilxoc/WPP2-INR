@@ -10,10 +10,11 @@ type IndexEntry struct {
 }
 
 type Index struct {
-	index map[string]*IndexEntry
-	k     int
-	r     int
-	j     float32
+	index  map[string]*IndexEntry
+	k      int
+	r      int
+	j      float32
+	kgramm *KGramIndex
 }
 
 func NewIndexEmpty(k int, r int, J float32) *Index {
@@ -23,6 +24,7 @@ func NewIndexEmpty(k int, r int, J float32) *Index {
 		j: J,
 	}
 	idx.index = make(map[string]*IndexEntry)
+	idx.kgramm = InitKGramIndex(k)
 	return idx
 }
 
@@ -38,6 +40,7 @@ func NewIndexFromFile(path string) (*Index, error) {
 func (i *Index) AddTerm(term string, posting *Posting) {
 	if entry, found := i.index[term]; found {
 		entry.Docs = append(entry.Docs, *posting)
+		i.kgramm.AddKGram(term, entry)
 	} else {
 		t := IndexEntry{
 			Term: term,
@@ -45,6 +48,7 @@ func (i *Index) AddTerm(term string, posting *Posting) {
 		}
 		t.Docs[0] = *posting
 		i.index[term] = &t
+		i.kgramm.AddKGram(term, &t)
 	}
 }
 

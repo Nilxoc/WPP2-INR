@@ -30,7 +30,7 @@ func TestTokenizer(t *testing.T) {
 		t.Errorf("Expected Term %s to exist and to be at position %d", "title", 1)
 	}
 
-	for k, _ := range text1Tokens {
+	for k := range text1Tokens {
 		if idx.GetTerm(k) == nil {
 			t.Errorf("Expected Term %s to exist", k)
 		}
