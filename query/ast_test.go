@@ -24,8 +24,8 @@ func TestParseBrackets(t *testing.T) {
 	parseNoError(t, "( term1 AND term2 ) AND term3")
 }
 
-func ParseFull(t *testing.T) {
-	parseNoError(t, "(\"term1 term2\" OR term3) AND NOT term4 /3 term5")
+func TestParseFull(t *testing.T) {
+	parseNoError(t, `("term1 term2" OR term3) AND NOT term4 /3 term5`)
 }
 
 func parseNoError(t *testing.T, inSample string) {

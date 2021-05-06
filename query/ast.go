@@ -10,7 +10,7 @@ import (
 
 type AstQuery struct {
 	index *index.Index
-	root  BinExpr
+	root  Expression
 }
 
 type AstQueryParser struct {
@@ -28,26 +28,6 @@ func Evaluate(q *AstQuery) (*index.PostingList, error) {
 }
 
 // AST-Nodes
-
-type ProxTerm struct {
-	K   *string `parser:"@Proxim"`
-	RHS *Value  `parser:"@@"`
-}
-
-type BinExpr struct {
-	LHS *Term    `parser:"@@"`
-	OP  []*BinOp `parser:"@@*"`
-}
-
-type BinOp struct {
-	OP  *string `parser:"@BoolOp"`
-	RHS *Term   `parser:"@@"`
-}
-
-type Right struct {
-	Op    *string `parser:"@Oper"`
-	Value *Value  `parser:"@@"`
-}
 
 type Value struct {
 	Text          *string     `parser:"( @Ident"`
@@ -77,11 +57,11 @@ type Phrase struct {
 }
 
 var lexer = stateful.MustSimple([]stateful.Rule{
-	{"BoolOp", `(?i)AND|OR`, nil},
+	{"BoolOp", `(?i)AND\sNOT|AND|OR`, nil},
 	{"Ident", `[a-zA-Z_]\w*`, nil},
 	{"String", `"(\\"|[^"])*"`, nil},
-	//{"Punct", `[-[!@#$%^&*()+_={}\|:;"'<,>.?/]|]`, nil},
-	{`Proxim`, `/\d`, nil},
+	{`Proxim`, `/\d`, nil}, // MUST be over 'Punct'
+	{"Punct", `[-[!@#$%^&*()+_={}\|:;"'<,>.?/]|]`, nil},
 	{"Number", `[-+]?(\d*\.)?\d+`, nil},
 	{"EOL", `[\n\r]+`, nil},
 	{"whitespace", `[ \t]+`, nil},
