@@ -87,6 +87,10 @@ func main() {
 			fmt.Println("Not found")
 			continue
 		}
+		if len(pl) == 0 {
+			fmt.Println("No results found. Try to lower j")
+			continue
+		}
 		fmt.Println(pl.String())
 
 		/* TODO
