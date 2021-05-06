@@ -3,11 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
-
 	"g1.wpp2.hsnr/inr/boolret/cli"
 	"g1.wpp2.hsnr/inr/boolret/file"
 	"g1.wpp2.hsnr/inr/boolret/index"
-	"g1.wpp2.hsnr/inr/boolret/queryparser"
+	"g1.wpp2.hsnr/inr/boolret/query"
 	"g1.wpp2.hsnr/inr/boolret/tokenizer"
 )
 
@@ -69,16 +68,18 @@ func main() {
 	//START CLI
 	cl := cli.Init()
 
-	qp := queryparser.InitParser(indexInstance)
+	// TODO: import index
+	parser := query.AstQueryParser{}
 
 	cl.Print("Welcome to INR-System please insert your first Query..")
 	for {
-		q := cl.GetInput()
-		pl, err := qp.Evaluate(q)
+		input := cl.GetInput()
+		q, err := query.Parse(input)
 		if err != nil {
 			cl.Print("Error executing Query: " + err.Error())
 			continue
 		}
+		pl, err := query.Evaluate(q)
 		//TODO: PRINT pl
 		cl.Print(pl.String())
 	}
