@@ -156,11 +156,17 @@ func (i *Index) getCorrectedDocs(term string, altCount int) []*IndexEntry {
 	}
 
 	min := minFunc(len(candidates), altCount)
+	totalAdd := 0
 
-	res := make([]*IndexEntry, min)
+	res := make([]*IndexEntry, 0, min)
 	for i := 0; i < min; i++ {
 		fmt.Printf("Did you mean %s ?\n", candidates[i].entry.Term)
-		res[i] = candidates[i].entry
+		res = append(res, candidates[i].entry)
+		totalAdd += len(candidates[i].entry.Docs)
+		if totalAdd >= altCount {
+			//Got enough Documents to return
+			break
+		}
 	}
 
 	return res

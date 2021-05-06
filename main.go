@@ -22,7 +22,7 @@ func main() {
 	flag.StringVar(&docSource, "doc", "", "path to input file (txt)")
 	flag.StringVar(&dictSource, "dict", "", "path to dict dump (skip index build) - if docSource also provided saves dict")
 	flag.IntVar(&k, "k", 2, "k for kgram index")
-	flag.IntVar(&r, "r", 1, "min count of terms to return")
+	flag.IntVar(&r, "r", 5, "min count of terms to return")
 	flag.Float64Var(&j, "j", 0.2, "jaccard threshold")
 	flag.Parse()
 
