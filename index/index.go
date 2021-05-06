@@ -143,7 +143,12 @@ func (i *Index) getCorrectedDocs(term string, altCount int) []*IndexEntry {
 	//Sort by Distance & by string
 	sort.Slice(candidates, func(i, j int) bool {
 		if candidates[i].ldist == candidates[j].ldist {
-			return candidates[i].entry.Term < candidates[j].entry.Term
+			il := len(candidates[i].entry.Docs)
+			jl := len(candidates[j].entry.Docs)
+			if il == jl {
+				return candidates[i].entry.Term < candidates[j].entry.Term
+			}
+			return il > jl
 		}
 		return candidates[i].ldist < candidates[j].ldist
 	})
