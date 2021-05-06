@@ -1,6 +1,7 @@
 package index
 
 import (
+	"fmt"
 	"math"
 	"sort"
 )
@@ -37,7 +38,17 @@ func intersectArrays(a []int64, b []int64) []int64 {
 }
 
 func (pl *PostingList) String() string {
-	return "TODO"
+	out := ""
+	out += fmt.Sprintln("Found the following documents:")
+
+	for _, p := range *pl {
+		out += fmt.Sprintf("%d ", p.DocID)
+	}
+	return out
+}
+
+func (p *Posting) String() string {
+	return fmt.Sprintf("%d", p.DocID)
 }
 
 func (pl *PostingList) Intersect(other *PostingList) PostingList {

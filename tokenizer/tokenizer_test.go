@@ -37,7 +37,7 @@ func TestTokenizer(t *testing.T) {
 	}
 
 	if idx.GetTerm("@") != nil {
-		t.Errorf("Expected Term %s to not exist", "title")
+		t.Errorf("Expected Term %s to not exist", "@")
 	}
 
 	for k, pos := range text1Tokens {

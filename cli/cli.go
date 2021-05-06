@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strings"
 )
 
 type CLI struct {
@@ -23,7 +24,7 @@ func (c *CLI) Prompt(msg string) string {
 func (c *CLI) GetInput() string {
 	fmt.Print("> ")
 	line, _ := c.reader.ReadString('\n')
-	return line
+	return strings.TrimSpace(line)
 }
 
 func (c *CLI) Print(msg string) {
