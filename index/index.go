@@ -98,6 +98,25 @@ func (i *Index) GetTermSuggestions(term string) []*IndexEntry {
 	return i.getCorrectedDocs(term, i.r)
 }
 
+func dedupe(entries []*IndexEntry) []*IndexEntry {
+	res := make([]*IndexEntry, 0, len(entries))
+	contains := func(x *IndexEntry) bool {
+		for _, e := range res {
+			if e.Term == x.Term {
+				return true
+			}
+		}
+		return false
+	}
+
+	for _, e := range entries {
+		if !contains(e) {
+			res = append(res, e)
+		}
+	}
+	return res
+}
+
 func (i *Index) getCorrectedDocs(term string, altCount int) []*IndexEntry {
 
 	type Candidate struct {
@@ -108,6 +127,7 @@ func (i *Index) getCorrectedDocs(term string, altCount int) []*IndexEntry {
 	candidates := make([]Candidate, 0)
 
 	posTokens := i.kgram.FindTokens(term)
+	posTokens = dedupe(posTokens)
 
 	for _, k := range posTokens {
 		if k.Term != term { // SKIP ALREADY SELECED TERM

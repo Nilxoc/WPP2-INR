@@ -39,7 +39,7 @@ func intersectArrays(a []int64, b []int64) []int64 {
 
 func (pl *PostingList) String() string {
 	out := ""
-	out += fmt.Sprintln("Found the following documents:")
+	//out += fmt.Sprintln("Found the following documents:")
 
 	for _, p := range *pl {
 		out += fmt.Sprintf("%d ", p.DocID)
