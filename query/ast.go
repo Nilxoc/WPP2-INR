@@ -50,8 +50,8 @@ type Right struct {
 }
 
 type Value struct {
-	Text *string `parser:"@Ident"`
-	//Phrase        *string     `parser:"| @String"`
+	Text          *string     `parser:"( @Ident"`
+	Phrase        *string     `parser:"| @String)"`
 	Subexpression *Expression `parser:"| '(' @@ ')'"`
 }
 
@@ -79,8 +79,8 @@ type Phrase struct {
 var lexer = stateful.MustSimple([]stateful.Rule{
 	{"BoolOp", `(?i)AND|OR`, nil},
 	{"Ident", `[a-zA-Z_]\w*`, nil},
-	//{"String", `(\\"|[^"])*`, nil},
-	{"Punct", `[-[!@#$%^&*()+_={}\|:;"'<,>.?/]|]`, nil},
+	{"String", `"(\\"|[^"])*"`, nil},
+	//{"Punct", `[-[!@#$%^&*()+_={}\|:;"'<,>.?/]|]`, nil},
 	{`Proxim`, `/\d`, nil},
 	{"Number", `[-+]?(\d*\.)?\d+`, nil},
 	{"EOL", `[\n\r]+`, nil},
