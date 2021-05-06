@@ -56,7 +56,7 @@ func (t *Tokenizer) evaluateText(text string, docID int) error {
 	hm := make(map[string]*index.Posting)
 
 	for i, token := range tokensRaw {
-		token = strings.ToLower(strings.Trim(token, "()\".;=-:,|][{}%/'!?"))
+		token = strings.ToLower(strings.Trim(token, "()\".;=-:,|][{}%/'!?&$§<>-_#+@*"))
 
 		if token == "" {
 			tokenSub += 1

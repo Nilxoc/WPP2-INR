@@ -13,14 +13,14 @@ type Index struct {
 	index map[string]*IndexEntry
 	k     int
 	r     int
-	J     float32
+	j     float32
 }
 
 func NewIndexEmpty(k int, r int, J float32) *Index {
 	idx := &Index{
 		k: k,
 		r: r,
-		J: J,
+		j: J,
 	}
 	idx.index = make(map[string]*IndexEntry)
 	return idx

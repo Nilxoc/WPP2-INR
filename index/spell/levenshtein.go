@@ -1,8 +1,6 @@
 package spell
 
-import "fmt"
-
-func min(a, b, c int) int {
+func minimum(a, b, c int) int {
 	if a < b && a < c {
 		return a
 	}
@@ -12,42 +10,30 @@ func min(a, b, c int) int {
 	return c
 }
 
-func LevenshteinDistance(s string, t string) int {
+//FROM: https://www.golangprograms.com/golang-program-for-implementation-of-levenshtein-distance.html
+func LevenshteinDistance(str1s, str2s string) int {
+	str1 := []rune(str1s)
+	str2 := []rune(str2s)
+	s1len := len(str1)
+	s2len := len(str2)
+	column := make([]int, len(str1)+1)
 
-	//Creating Array's
-	m := len(s)
-	n := len(t)
-	D := make([][]int, m+1)
-	for i := 0; i < m+1; i++ {
-		D[i] = make([]int, n+1)
+	for y := 1; y <= s1len; y++ {
+		column[y] = y
 	}
-
-	fmt.Println(D)
-
-	//Prepare Matrix
-	for i := 0; i <= m; i++ {
-		D[i][0] = i
-	}
-	for j := 0; j <= n; j++ {
-		D[0][j] = j
-	}
-
-	fmt.Println(D)
-
-	for i := 1; i < m; i++ {
-		for j := 1; j < n; j++ {
-			cost := 0
-			if s[i] == t[j] {
-				cost = 0
-			} else {
-				cost = 1
+	for x := 1; x <= s2len; x++ {
+		column[0] = x
+		lastkey := x - 1
+		for y := 1; y <= s1len; y++ {
+			oldkey := column[y]
+			var incr int
+			if str1[y-1] != str2[x-1] {
+				incr = 1
 			}
-			D[i][j] = min(
-				D[i-1][j]+1,
-				D[i][j-1]+1,
-				D[i-1][j-1]+cost,
-			)
+
+			column[y] = minimum(column[y]+1, column[y-1]+1, lastkey+incr)
+			lastkey = oldkey
 		}
 	}
-	return D[m-1][n-1]
+	return column[s1len]
 }

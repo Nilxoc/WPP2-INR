@@ -6,10 +6,10 @@ import (
 	"g1.wpp2.hsnr/inr/boolret/index"
 )
 
-const text1 string = "FOO\tBar\t\"Title\"\tHallo Welt, dies ist ein Test!"
-const text1TokenCount int = 7
+const text1 string = "FOO\tBar\t\"Title\"\tHallo Welt, dies i'm % ist ein Test!"
+const text1TokenCount int = 8
 
-var text1Tokens = []string{"title", "hallo", "welt", "dies", "ist", "ein", "test"}
+var text1Tokens = map[string]int{"title": 1, "hallo": 2, "welt": 3, "dies": 4, "i'm": 5, "ist": 6, "ein": 7, "test": 8}
 
 func TestTokenizer(t *testing.T) {
 
@@ -30,9 +30,20 @@ func TestTokenizer(t *testing.T) {
 		t.Errorf("Expected Term %s to exist and to be at position %d", "title", 1)
 	}
 
-	for _, x := range text1Tokens {
-		if idx.GetTerm(x) == nil {
-			t.Errorf("Expected Term %s to exist", x)
+	for k, _ := range text1Tokens {
+		if idx.GetTerm(k) == nil {
+			t.Errorf("Expected Term %s to exist", k)
+		}
+	}
+
+	if idx.GetTerm("@") != nil {
+		t.Errorf("Expected Term %s to not exist", "title")
+	}
+
+	for k, pos := range text1Tokens {
+		idxPos := idx.GetTerm(k).Docs[0].Pos[0]
+		if int(idxPos) != pos {
+			t.Errorf("Invalid Position for token %s. Expected %d got %d", k, pos, idxPos)
 		}
 	}
 
