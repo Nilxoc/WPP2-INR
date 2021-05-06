@@ -14,45 +14,54 @@ type IndexEntry struct {
 }
 
 type Index struct {
-	index  map[string]*IndexEntry
-	k      int
-	r      int
-	j      float32
-	kgramm *KGramIndex
+	Index map[string]*IndexEntry
+	K     int
+	r     int
+	j     float32
+	kgram *KGramIndex
 }
 
 func NewIndexEmpty(k int, r int, J float32) *Index {
 	idx := &Index{
-		k: k,
+		K: k,
 		r: r,
 		j: J,
 	}
-	idx.index = make(map[string]*IndexEntry)
-	idx.kgramm = InitKGramIndex(k)
+	idx.Index = make(map[string]*IndexEntry)
+	idx.kgram = InitKGramIndex(k)
 	return idx
 }
 
-func NewIndexFromFile(path string) (*Index, error) {
+func NewIndexFromFile(path string, k int, r int, j float32) (*Index, error) {
 	idx, err := loadIndex(path)
+	idx.r = r
+	idx.j = j
+	idx.K = k
+	idx.kgram = InitKGramIndex(k)
 	if err != nil {
 		return nil, err
+	}
+
+	//Regenerate KGram-Index on Load, because we cannot persist it..
+	for k, v := range idx.Index {
+		idx.kgram.AddKGram(k, v)
 	}
 	return idx, nil
 }
 
 ///INDEX SPECIFIC METHODS
 func (i *Index) AddTerm(term string, posting *Posting) {
-	if entry, found := i.index[term]; found {
+	if entry, found := i.Index[term]; found {
 		entry.Docs = append(entry.Docs, *posting)
-		i.kgramm.AddKGram(term, entry)
+		i.kgram.AddKGram(term, entry)
 	} else {
 		t := IndexEntry{
 			Term: term,
 			Docs: make(PostingList, 1),
 		}
 		t.Docs[0] = *posting
-		i.index[term] = &t
-		i.kgramm.AddKGram(term, &t)
+		i.Index[term] = &t
+		i.kgram.AddKGram(term, &t)
 	}
 }
 
@@ -65,7 +74,7 @@ func docsSum(inp []*IndexEntry) int {
 }
 
 func (i *Index) GetTerm(term string) *IndexEntry {
-	if e, f := i.index[term]; f {
+	if e, f := i.Index[term]; f {
 		return e
 	}
 	return nil
@@ -77,7 +86,7 @@ func (i *Index) GetTermSuggestions(term string) []*IndexEntry {
 	}
 
 	res := make([]*IndexEntry, 1)
-	if e, f := i.index[term]; f {
+	if e, f := i.Index[term]; f {
 		res[0] = e
 		docs := docsSum(res)
 		if docs < i.r {
@@ -98,11 +107,11 @@ func (i *Index) getCorrectedDocs(term string, altCount int) []*IndexEntry {
 
 	candidates := make([]Candidate, 0)
 
-	posTokens := i.kgramm.FindTokens(term)
+	posTokens := i.kgram.FindTokens(term)
 
 	for _, k := range posTokens {
 		if k.Term != term { // SKIP ALREADY SELECED TERM
-			if jv := spell.Jaccard(term, k.Term, i.k); jv > i.j {
+			if jv := spell.Jaccard(term, k.Term, i.K); jv > i.j {
 				candidates = append(candidates, Candidate{
 					ldist: spell.LevenshteinDistance(term, k.Term),
 					entry: k,
@@ -155,7 +164,7 @@ func (i *Index) SaveIndex(path string) error {
 }
 
 func (i *Index) Len() int {
-	return len(i.index)
+	return len(i.Index)
 }
 
 func (i *IndexEntry) String() string {

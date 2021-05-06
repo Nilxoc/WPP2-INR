@@ -60,7 +60,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		indexInstance, err = index.NewIndexFromFile(absDictPath)
+		indexInstance, err = index.NewIndexFromFile(absDictPath, k, r, float32(j))
 		if err != nil {
 			panic(err)
 		}
