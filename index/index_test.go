@@ -321,3 +321,16 @@ func TestDifference(t *testing.T) {
 		t.Errorf("wrong positions in fourth posting, expected [1,2,5,6,7,8],got %v", res[3].Pos)
 	}
 }
+
+func TestGetCorrectedDocs(t *testing.T) {
+	idx := NewIndexEmpty(2, 5, 0.2)
+
+	idx.AddTerm("boardroom", &Posting{1, make([]int64, 0)})
+	idx.AddTerm("boardroom", &Posting{2, make([]int64, 0)})
+	idx.AddTerm("boardroom", &Posting{3, make([]int64, 0)})
+	idx.AddTerm("boardroom", &Posting{4, make([]int64, 0)})
+	idx.AddTerm("boardroom", &Posting{5, make([]int64, 0)})
+	idx.AddTerm("boardroom", &Posting{6, make([]int64, 0)})
+
+	idx.getCorrectedDocs("bord", 5)
+}

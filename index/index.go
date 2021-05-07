@@ -53,7 +53,7 @@ func NewIndexFromFile(path string, k int, r int, j float32) (*Index, error) {
 func (i *Index) AddTerm(term string, posting *Posting) {
 	if entry, found := i.Index[term]; found {
 		entry.Docs = append(entry.Docs, *posting)
-		i.kgram.AddKGram(term, entry)
+		//i.kgram.AddKGram(term, entry)
 	} else {
 		t := IndexEntry{
 			Term: term,

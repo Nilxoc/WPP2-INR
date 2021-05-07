@@ -35,10 +35,10 @@ func (idx *KGramIndex) addGram(gram string, ref *IndexEntry) {
 	}
 }
 
-func (idx *KGramIndex) FindTokens(token string) []FindTokensRes {
+func (idx *KGramIndex) FindTokens(token string) []*FindTokensRes {
 	needles := spell.ExtractKGrams(token, idx.K)
 
-	acc := make(map[string]FindTokensRes, 0)
+	acc := make(map[string]*FindTokensRes, 0)
 	/**
 	for gram, kg := range idx.Entries {
 		for _, needle := range needles {
@@ -55,15 +55,15 @@ func (idx *KGramIndex) FindTokens(token string) []FindTokensRes {
 			for _, entry := range out {
 				resTerm, resFound := acc[entry.Term]
 				if resFound {
-					resTerm.Count += 1
+					(*resTerm).Count += 1
 				} else {
-					acc[entry.Term] = FindTokensRes{entry, 1}
+					acc[entry.Term] = &FindTokensRes{entry, 1}
 				}
 			}
 		}
 	}
 
-	res := make([]FindTokensRes, 0)
+	res := make([]*FindTokensRes, 0)
 	for _, val := range acc {
 		res = append(res, val)
 	}
