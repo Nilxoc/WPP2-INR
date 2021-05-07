@@ -2,10 +2,13 @@ package query
 
 import (
 	"fmt"
+	"g1.wpp2.hsnr/inr/boolret/config"
 	"g1.wpp2.hsnr/inr/boolret/index"
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer/stateful"
 	"github.com/alecthomas/repr"
+	"strconv"
+	"strings"
 )
 
 type AstQuery struct {
@@ -17,17 +20,15 @@ type AstQueryParser struct {
 	index *index.Index
 }
 
-type astNode interface {
-	nodeType() string
-	terminal() bool
-	evaluate(index *index.Index) (*index.PostingList, error)
-}
-
 func Evaluate(q *AstQuery) (*index.PostingList, error) {
 	return nil, nil
 }
 
 // AST-Nodes
+
+type Phrase struct {
+	Value []*string `"\"" @Ident* "\""`
+}
 
 type Value struct {
 	Text          *string     `parser:"( @Ident"`
@@ -41,7 +42,7 @@ type Term struct {
 }
 
 type OpTerm struct {
-	OP   string  `parser:"( @BoolOp |"`
+	OP   *string `parser:"( @BoolOp |"`
 	K    *string `parser:"@Proxim )"`
 	Term *Term   `parser:"@@"`
 }
@@ -49,11 +50,6 @@ type OpTerm struct {
 type Expression struct {
 	Left  *Term     `parser:"@@"`
 	Right []*OpTerm `parser:"@@*"`
-}
-
-//goland:noinspection GoVetStructTag
-type Phrase struct {
-	Value []*string `"\"" @Ident* "\""`
 }
 
 var lexer = stateful.MustSimple([]stateful.Rule{
@@ -81,6 +77,132 @@ func Parse(query string) (*Expression, error) {
 	return gram, nil
 }
 
+// Context common evaluation context
+type Context struct {
+	index  index.Index
+	config config.Config
+}
+
+func (e *Expression) eval(ctx Context) (*index.PostingList, error) {
+	left, err := e.Left.Eval(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, r := range e.Right {
+		eval, err := r.Term.Eval(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		left, err = r.eval(left, eval)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return left, nil
+}
+
+func (t *OpTerm) eval(l *index.PostingList, r *index.PostingList) (*index.PostingList, error) {
+	op := t.OP
+	if op != nil {
+		return evalOper(op, l, r)
+	}
+	if t.K != nil {
+		return l.Proximity(r, parseK(t.K)), nil
+	}
+	return nil, fmt.Errorf("unsupported operand: '%v'", op)
+}
+
+func evalOper(op *string, l *index.PostingList, r *index.PostingList) (*index.PostingList, error) {
+	switch *op {
+	case "OR":
+		return l.Union(r), nil
+	case "AND":
+		return l.Intersect(r), nil
+	case "AND NOT":
+		return l.Difference(r), nil
+	default:
+		return nil, fmt.Errorf("unknown operator: '%s'", *op)
+	}
+}
+
+func parseK(k *string) int64 {
+	p, err := strconv.ParseInt(*k, 0, 32)
+	if err != nil {
+		panic(fmt.Errorf("cannot parse proximity: '%s'", *k))
+	}
+	return p
+}
+
+func (t *Term) Eval(ctx Context) (*index.PostingList, error) {
+	left, err := t.Left.Eval(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, r := range t.Right {
+		eval, err := r.Eval(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return eval, nil
+	}
+	return left, nil
+}
+
+func (t *Value) Eval(ctx Context) (*index.PostingList, error) {
+	text := t.Text
+	if text != nil {
+		return getTerm(ctx, *text), nil
+	}
+
+	phrase := t.Phrase
+	if phrase != nil {
+		fields := strings.Fields(*phrase)
+
+		fieldLen := len(fields)
+		if fieldLen == 0 {
+			empty := make(index.PostingList, 0)
+			return &empty, nil
+		} else if fieldLen == 1 {
+			return getTerm(ctx, fields[0]), nil
+		} else {
+			terms := getTerms(ctx, fields)
+			first := terms[0]
+
+			others := make([]*index.PostingList, 0, fieldLen-1)
+			for i := 1; i <= fieldLen; i++ {
+				others[i] = getTerm(ctx, fields[i])
+			}
+
+			return first.PhraseIntersect(others), nil
+		}
+	}
+
+	// TODO: sub-query
+	return nil, nil
+}
+
+func getTerm(ctx Context, text string) *index.PostingList {
+	term := ctx.index.GetTerm(text)
+	if term != nil {
+		return &term.Docs
+	}
+	empty := make(index.PostingList, 0)
+	return &empty
+}
+
+func getTerms(ctx Context, text []string) []*index.PostingList {
+	res := make([]*index.PostingList, 0, len(text))
+	for _, t := range text {
+		term := getTerm(ctx, t)
+		res = append(res, term)
+	}
+	return res
+}
+
+// Print prints the expression in a human-readable format
 func Print(r *Expression) {
 	repr.Println(r, repr.Indent(" "), repr.OmitEmpty(true))
 }
