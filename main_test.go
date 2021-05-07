@@ -33,7 +33,7 @@ func TestMain(t *testing.T) {
 
 	tokStart := time.Now()
 
-	if err := tokenizer.ParseFile(docSource); err != nil {
+	if err := tokenizer.ParseSingleFile(docSource); err != nil {
 		t.Logf("No doc_dump.txt file found. Skipping Performance-Testing")
 		return
 	}
