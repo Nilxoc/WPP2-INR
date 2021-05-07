@@ -152,7 +152,7 @@ func (pl *PostingList) positionalIntersect(other *PostingList, k int64, kCond fu
 	return &answer
 }
 
-func (pl *PostingList) PositionalIntersect(other *PostingList, k int64) *PostingList {
+func (pl *PostingList) Proximity(other *PostingList, k int64) *PostingList {
 	return pl.positionalIntersect(other, k, func(num1, num2, k int64) bool {
 		return int64(math.Abs(float64(num1)-float64(num2))) <= k
 	})

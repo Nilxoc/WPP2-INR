@@ -146,7 +146,7 @@ func TestPostitionalIntersect(t *testing.T) {
 	list2 = append(list2, Posting{4, []int64{8, 23, 91}})
 	list2 = append(list2, Posting{8, []int64{25, 39, 90}})
 
-	var res = list1.PositionalIntersect(&list2, 2)
+	var res = list1.Proximity(&list2, 2)
 
 	if len(*res) != 2 {
 		t.Errorf("wrong posting count, expected 2, got %d", len(*res))
