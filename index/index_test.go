@@ -61,7 +61,7 @@ func TestIntersect(t *testing.T) {
 	}
 
 	if !arrayEqual {
-		t.Errorf("Wrong Positions in first second, expected [1,2,5,6,7,8],got %v", res[1].Pos)
+		t.Errorf("Wrong Positions in second posting, expected [1,2,5,6,7,8],got %v", res[1].Pos)
 	}
 }
 

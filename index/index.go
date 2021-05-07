@@ -127,14 +127,13 @@ func (i *Index) getCorrectedDocs(term string, altCount int) []*IndexEntry {
 	candidates := make([]Candidate, 0)
 
 	posTokens := i.kgram.FindTokens(term)
-	posTokens = dedupe(posTokens)
 
 	for _, k := range posTokens {
-		if k.Term != term { // SKIP ALREADY SELECED TERM
-			if jv := spell.Jaccard(term, k.Term, i.K); jv > i.j {
+		if k.Entry.Term != term { // SKIP ALREADY SELECED TERM
+			if jv := spell.Jaccard(term, k.Entry.Term, k.Count, i.K); jv > i.j {
 				candidates = append(candidates, Candidate{
-					ldist: spell.LevenshteinDistance(term, k.Term),
-					entry: k,
+					ldist: spell.LevenshteinDistance(term, k.Entry.Term),
+					entry: k.Entry,
 				})
 			}
 		}
