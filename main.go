@@ -18,12 +18,14 @@ func main() {
 	var k int = 0
 	var r int = 0
 	var j float64 = 0
+	var useCorrection = true
 
 	flag.StringVar(&docSource, "doc", "", "path to input file (txt)")
 	flag.StringVar(&dictSource, "dict", "", "path to dict dump (skip index build) - if docSource also provided saves dict")
 	flag.IntVar(&k, "k", 2, "k for kgram index")
 	flag.IntVar(&r, "r", 5, "min count of terms to return")
 	flag.Float64Var(&j, "j", 0.2, "jaccard threshold")
+	flag.BoolVar(&useCorrection, "correction", true, "enable error correction")
 	flag.Parse()
 
 	var indexInstance *index.Index
