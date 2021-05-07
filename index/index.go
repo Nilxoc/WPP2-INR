@@ -2,6 +2,7 @@ package index
 
 import (
 	"fmt"
+	"g1.wpp2.hsnr/inr/boolret/config"
 	"sort"
 
 	"g1.wpp2.hsnr/inr/boolret/file"
@@ -21,26 +22,32 @@ type Index struct {
 	kgram *KGramIndex
 }
 
-func NewIndexEmpty(k int, r int, J float32) *Index {
+func NewIndexEmpty(c *config.Config) *Index {
 	idx := &Index{
-		K: k,
-		r: r,
-		j: J,
+		K: int(c.KGram),
+		r: c.CSpellThresh,
+		j: c.JThresh,
 	}
 	idx.Index = make(map[string]*IndexEntry)
-	idx.kgram = InitKGramIndex(k)
+	idx.kgram = InitKGramIndex(idx.K)
 	return idx
 }
 
-func NewIndexFromFile(path string, k int, r int, j float32) (*Index, error) {
-	idx, err := loadIndex(path)
-	idx.r = r
-	idx.j = j
-	idx.K = k
-	idx.kgram = InitKGramIndex(k)
+func NewIndexFromFile(cfg *config.Config) (*Index, error) {
+	absDictPath, err := file.AbsPath(cfg.PDict)
+	if err != nil {
+		panic(err)
+	}
+
+	idx, err := loadIndex(absDictPath)
 	if err != nil {
 		return nil, err
 	}
+
+	idx.r = cfg.CSpellThresh
+	idx.j = cfg.JThresh
+	idx.K = int(cfg.KGram)
+	idx.kgram = InitKGramIndex(idx.K)
 
 	//Regenerate KGram-Index on Load, because we cannot persist it..
 	for k, v := range idx.Index {
