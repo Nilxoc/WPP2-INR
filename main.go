@@ -41,7 +41,7 @@ func main() {
 			panic(err)
 		}
 
-		if err := tokenizer.ParseFile(absDocPath); err != nil {
+		if err := tokenizer.ParseMultiFile(absDocPath); err != nil {
 			panic(err)
 		}
 		fmt.Printf("File Parsed. Found %d terms\n", indexInstance.Len())

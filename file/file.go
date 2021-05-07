@@ -46,3 +46,17 @@ func SaveIndex(data interface{}, path string) error {
 	enc := gob.NewEncoder(file)
 	return enc.Encode(data)
 }
+
+func ListFiles(pathD string) ([]string, error) {
+	entr, err := os.ReadDir(pathD)
+	res := make([]string, 0, len(entr))
+	if err != nil {
+		return nil, err
+	}
+	for _, f := range entr {
+		if !f.IsDir() {
+			res = append(res, path.Join(pathD, f.Name()))
+		}
+	}
+	return res, nil
+}
