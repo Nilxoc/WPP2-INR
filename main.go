@@ -1,8 +1,10 @@
 package main
 
 import (
-	"flag"
 	"fmt"
+	"log"
+
+	"g1.wpp2.hsnr/inr/boolret/config"
 
 	"g1.wpp2.hsnr/inr/boolret/cli"
 	"g1.wpp2.hsnr/inr/boolret/file"
@@ -12,43 +14,35 @@ import (
 
 func main() {
 
-	var docSource string
-	var dictSource string
-
-	var k int = 0
-	var r int = 0
-	var j float64 = 0
-	var useCorrection = true
-
-	flag.StringVar(&docSource, "doc", "/home/colin/doc_dump.txt", "path to input file (txt)")
-	flag.StringVar(&dictSource, "dict", "", "path to dict dump (skip index build) - if docSource also provided saves dict")
-	flag.IntVar(&k, "k", 2, "k for kgram index")
-	flag.IntVar(&r, "r", 5, "min count of terms to return")
-	flag.Float64Var(&j, "j", 0.2, "jaccard threshold")
-	flag.BoolVar(&useCorrection, "correction", true, "enable error correction")
-	flag.Parse()
+	cfg, err := config.Parse()
+	if err != nil {
+		log.Panic(err)
+	}
 
 	var indexInstance *index.Index
 
-	if docSource != "" {
+	docPath := cfg.PDoc
+	dictPath := cfg.PDict
+
+	if docPath != "" {
 		//CREATE INDEX
-		indexInstance = index.NewIndexEmpty(k, r, float32(j))
+		indexInstance = index.NewIndexEmpty(cfg)
 
 		tokenizer := tokenizer.InitTokenizer(indexInstance)
 
-		absDocPath, err := file.AbsPath(docSource)
+		absDocPath, err := file.AbsPath(docPath)
 		if err != nil {
 			panic(err)
 		}
 
-		if err := tokenizer.ParseFile(absDocPath); err != nil {
+		if err := tokenizer.ParseMultiFile(absDocPath); err != nil {
 			panic(err)
 		}
 		fmt.Printf("File Parsed. Found %d terms\n", indexInstance.Len())
 
-		if dictSource != "" {
+		if dictPath != "" {
 			//SAVE INDEX
-			absDictPath, err := file.AbsPath(dictSource)
+			absDictPath, err := file.AbsPath(dictPath)
 			if err != nil {
 				panic(err)
 			}
@@ -56,22 +50,14 @@ func main() {
 				panic(err)
 			}
 		}
-	} else if dictSource != "" {
+	} else if dictPath != "" {
 		//READ INDEX
-		absDictPath, err := file.AbsPath(dictSource)
-		if err != nil {
-			panic(err)
-		}
-		indexInstance, err = index.NewIndexFromFile(absDictPath, k, r, float32(j))
+		indexInstance, err = index.NewIndexFromFile(cfg)
 		if err != nil {
 			panic(err)
 		}
 
 		fmt.Printf("Dump loaded. Containing %d terms\n", indexInstance.Len())
-	}
-
-	if dictSource == "" && docSource == "" {
-		panic(fmt.Errorf("No Input specified"))
 	}
 
 	//START CLI

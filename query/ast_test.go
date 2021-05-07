@@ -4,6 +4,10 @@ import (
 	"testing"
 )
 
+func TestParseSingle(t *testing.T) {
+	parseNoError(t, "test1")
+}
+
 func TestParseAnd(t *testing.T) {
 	parseNoError(t, "test1 AND test2")
 }

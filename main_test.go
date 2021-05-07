@@ -1,6 +1,7 @@
 package main
 
 import (
+	"g1.wpp2.hsnr/inr/boolret/config"
 	"path"
 	"runtime"
 	"testing"
@@ -15,9 +16,6 @@ func TestMain(t *testing.T) {
 
 	var docSource string
 
-	var k int = 2
-	var r int = 5
-	var j float64 = 0.2
 	_, testFnPath, _, _ := runtime.Caller(0)
 	workDir := path.Dir(testFnPath)
 	docSource, err := file.AbsPath(path.Join(workDir, "doc_dump.txt"))
@@ -26,14 +24,22 @@ func TestMain(t *testing.T) {
 		return
 	}
 
+	cfg := config.Config{
+		PDoc:         "",
+		PDict:        "",
+		KGram:        2,
+		JThresh:      0.2,
+		CSpell:       true,
+		CSpellThresh: 5,
+	}
 	var indexInstance *index.Index
-	indexInstance = index.NewIndexEmpty(k, r, float32(j))
+	indexInstance = index.NewIndexEmpty(&cfg)
 
 	tokenizer := tokenizer.InitTokenizer(indexInstance)
 
 	tokStart := time.Now()
 
-	if err := tokenizer.ParseFile(docSource); err != nil {
+	if err := tokenizer.ParseSingleFile(docSource); err != nil {
 		t.Logf("No doc_dump.txt file found. Skipping Performance-Testing")
 		return
 	}

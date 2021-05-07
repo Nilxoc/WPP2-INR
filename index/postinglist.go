@@ -51,7 +51,7 @@ func (p *Posting) String() string {
 	return fmt.Sprintf("%d", p.DocID)
 }
 
-func (pl *PostingList) Intersect(other *PostingList) PostingList {
+func (pl *PostingList) Intersect(other *PostingList) *PostingList {
 	answer := make(PostingList, 0)
 	var p1, p2 int
 	for p1 < len(*pl) && p2 < len(*other) {
@@ -65,10 +65,10 @@ func (pl *PostingList) Intersect(other *PostingList) PostingList {
 			p2 += 1
 		}
 	}
-	return answer
+	return &answer
 }
 
-func (pl *PostingList) Union(other *PostingList) PostingList {
+func (pl *PostingList) Union(other *PostingList) *PostingList {
 	answer := make(PostingList, 0)
 	var p1, p2 int
 	for p1 < len(*pl) && p2 < len(*other) {
@@ -94,10 +94,10 @@ func (pl *PostingList) Union(other *PostingList) PostingList {
 		answer = append(answer, (*other)[p2])
 		p1 += 1
 	}
-	return answer
+	return &answer
 }
 
-func (pl *PostingList) positionalIntersect(other *PostingList, k int64, kCond func(num1, num2, k int64) bool) PostingList {
+func (pl *PostingList) positionalIntersect(other *PostingList, k int64, kCond func(num1, num2, k int64) bool) *PostingList {
 	answer := make(PostingList, 0)
 	var p1, p2 int
 	for p1 < len(*pl) && p2 < len(*other) {
@@ -149,21 +149,21 @@ func (pl *PostingList) positionalIntersect(other *PostingList, k int64, kCond fu
 			p2 += 1
 		}
 	}
-	return answer
+	return &answer
 }
 
-func (pl *PostingList) PositionalIntersect(other *PostingList, k int64) PostingList {
+func (pl *PostingList) Proximity(other *PostingList, k int64) *PostingList {
 	return pl.positionalIntersect(other, k, func(num1, num2, k int64) bool {
 		return int64(math.Abs(float64(num1)-float64(num2))) <= k
 	})
 }
 
-func (pl *PostingList) PhraseIntersect(others []*PostingList) PostingList {
+func (pl *PostingList) PhraseIntersect(others []*PostingList) *PostingList {
 	currPl := *pl
 	var k int
 	for i, v := range others {
 		res := currPl.positionalIntersect(v, int64(i+1), func(num1, num2, k int64) bool { return num2-num1 == k })
-		for _, v2 := range res {
+		for _, v2 := range *res {
 			for k < len(currPl) && currPl[k].DocID < v2.DocID {
 				currPl = append(currPl[:k], currPl[k+1:]...)
 			}
@@ -195,10 +195,10 @@ func (pl *PostingList) PhraseIntersect(others []*PostingList) PostingList {
 		}
 		res = append(res, Posting{v.DocID, posList})
 	}
-	return res
+	return &res
 }
 
-func (pl *PostingList) Difference(other *PostingList) PostingList {
+func (pl *PostingList) Difference(other *PostingList) *PostingList {
 	answer := make(PostingList, 0)
 	var p1, p2 int
 	for p1 < len(*pl) && p2 < len(*other) {
@@ -223,5 +223,5 @@ func (pl *PostingList) Difference(other *PostingList) PostingList {
 		answer = append(answer, (*other)[p2])
 		p1 += 1
 	}
-	return answer
+	return &answer
 }

@@ -1,6 +1,7 @@
 package tokenizer
 
 import (
+	"g1.wpp2.hsnr/inr/boolret/config"
 	"testing"
 
 	"g1.wpp2.hsnr/inr/boolret/index"
@@ -12,9 +13,17 @@ const text1TokenCount int = 8
 var text1Tokens = map[string]int{"title": 1, "hallo": 2, "welt": 3, "dies": 4, "i'm": 5, "ist": 6, "ein": 7, "test": 8}
 
 func TestTokenizer(t *testing.T) {
-
 	//TODO
-	idx := index.NewIndexEmpty(1, 1, 0.5)
+	cfg := config.Config{
+		PDoc:         "",
+		PDict:        "",
+		KGram:        1,
+		JThresh:      0.5,
+		CSpell:       false,
+		CSpellThresh: 1,
+	}
+
+	idx := index.NewIndexEmpty(&cfg)
 	tk := InitTokenizer(idx)
 
 	err := tk.ParseString(text1)
