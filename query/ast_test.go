@@ -1,8 +1,12 @@
 package query
 
 import (
+	"g1.wpp2.hsnr/inr/boolret/config"
+	"g1.wpp2.hsnr/inr/boolret/index"
 	"testing"
 )
+
+// validates if sample queries can be compiled
 
 func TestParseSingle(t *testing.T) {
 	parseNoError(t, "test1")
@@ -32,11 +36,19 @@ func TestParseFull(t *testing.T) {
 	parseNoError(t, `("term1 term2" OR term3) AND NOT term4 /3 term5`)
 }
 
-func parseNoError(t *testing.T, inSample string) {
-	q, err := Parse(inSample)
+func parseNoError(t *testing.T, q string) {
+	cfg := &config.Config{}
+	idx := index.NewIndexEmpty(cfg)
+	ctx := Context{
+		Index:  idx,
+		Config: cfg,
+	}
+	parser := AstQueryParser{Context: &ctx}
+
+	parsed, err := parser.Parse(q)
 	if err != nil {
 		t.Errorf("%s", err)
 	} else {
-		Print(q)
+		parsed.Print()
 	}
 }

@@ -22,7 +22,7 @@ type Config struct {
 	CSpellThresh int
 }
 
-func Parse() (*Config, error) {
+func DefaultConfig() *Config {
 	defaultCfg := Config{
 		PDoc:         "",
 		PDict:        "",
@@ -31,8 +31,12 @@ func Parse() (*Config, error) {
 		CSpell:       true,
 		CSpellThresh: 5,
 	}
+	return &defaultCfg
+}
 
-	return parseConfig(&defaultCfg)
+func Parse() (*Config, error) {
+	defaultCfg := DefaultConfig()
+	return parseConfig(defaultCfg)
 }
 
 func parseConfig(c *Config) (*Config, error) {

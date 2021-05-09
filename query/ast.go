@@ -2,7 +2,6 @@ package query
 
 import (
 	"fmt"
-	"g1.wpp2.hsnr/inr/boolret/config"
 	"g1.wpp2.hsnr/inr/boolret/index"
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer/stateful"
@@ -11,17 +10,37 @@ import (
 	"strings"
 )
 
-type AstQuery struct {
-	index *index.Index
-	root  Expression
-}
-
 type AstQueryParser struct {
-	index *index.Index
+	Context *Context
 }
 
-func Evaluate(q *AstQuery) (*index.PostingList, error) {
-	return nil, nil
+func (p AstQueryParser) Parse(s string) (*AstQuery, error) {
+	gram := &Expression{}
+	err := parser.ParseString("", s, gram)
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse string: %v", err)
+	}
+	q := &AstQuery{context: p.Context, root: gram}
+	return q, nil
+}
+
+type AstQuery struct {
+	context *Context
+	root    *Expression
+}
+
+func (q AstQuery) Evaluate() (*Result, error) {
+	pl, err := q.root.eval(q.context)
+	if err != nil {
+		return nil, err
+	}
+	res := Result{Entry: pl}
+
+	return &res, nil
+}
+
+func (q AstQuery) Print() {
+	repr.Println(q.root, repr.Indent(" "), repr.OmitEmpty(true))
 }
 
 // AST-Nodes
@@ -68,22 +87,7 @@ var parser = participle.MustBuild(&Expression{},
 	//participle.UseLookahead(3),
 )
 
-func Parse(query string) (*Expression, error) {
-	gram := &Expression{}
-	err := parser.ParseString("", query, gram)
-	if err != nil {
-		return nil, fmt.Errorf("cannot parse string: %v", err)
-	}
-	return gram, nil
-}
-
-// Context common evaluation context
-type Context struct {
-	index  index.Index
-	config config.Config
-}
-
-func (e *Expression) eval(ctx Context) (*index.PostingList, error) {
+func (e *Expression) eval(ctx *Context) (*index.PostingList, error) {
 	left, err := e.Left.Eval(ctx)
 	if err != nil {
 		return nil, err
@@ -135,7 +139,7 @@ func parseK(k *string) int64 {
 	return p
 }
 
-func (t *Term) Eval(ctx Context) (*index.PostingList, error) {
+func (t *Term) Eval(ctx *Context) (*index.PostingList, error) {
 	left, err := t.Left.Eval(ctx)
 	if err != nil {
 		return nil, err
@@ -151,7 +155,7 @@ func (t *Term) Eval(ctx Context) (*index.PostingList, error) {
 	return left, nil
 }
 
-func (t *Value) Eval(ctx Context) (*index.PostingList, error) {
+func (t *Value) Eval(ctx *Context) (*index.PostingList, error) {
 	text := t.Text
 	if text != nil {
 		return getTerm(ctx, *text), nil
@@ -184,25 +188,20 @@ func (t *Value) Eval(ctx Context) (*index.PostingList, error) {
 	return nil, nil
 }
 
-func getTerm(ctx Context, text string) *index.PostingList {
-	term := ctx.index.GetTerm(text)
+func getTerm(ctx *Context, text string) *index.PostingList {
+	term := ctx.Index.GetTermListCorrected(text)
 	if term != nil {
-		return &term.Docs
+		return &term
 	}
 	empty := make(index.PostingList, 0)
 	return &empty
 }
 
-func getTerms(ctx Context, text []string) []*index.PostingList {
+func getTerms(ctx *Context, text []string) []*index.PostingList {
 	res := make([]*index.PostingList, 0, len(text))
 	for _, t := range text {
 		term := getTerm(ctx, t)
 		res = append(res, term)
 	}
 	return res
-}
-
-// Print prints the expression in a human-readable format
-func Print(r *Expression) {
-	repr.Println(r, repr.Indent(" "), repr.OmitEmpty(true))
 }

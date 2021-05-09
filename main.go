@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"g1.wpp2.hsnr/inr/boolret/query"
 	"log"
 
 	"g1.wpp2.hsnr/inr/boolret/config"
@@ -63,7 +64,11 @@ func main() {
 	//START CLI
 	cl := cli.Init()
 
-	//qp := queryparser.InitParser(indexInstance)
+	ctx := query.Context{
+		Index:  indexInstance,
+		Config: cfg,
+	}
+	parser := query.AstQueryParser{Context: &ctx}
 
 	cl.Print("Welcome to INR-System please insert your first Query..")
 	for {
@@ -81,15 +86,21 @@ func main() {
 		}
 		fmt.Println(pl.String())
 
-		/* TODO
-		q := cl.GetInput()
-		pl, err := qp.Evaluate(q)
+		in := cl.GetInput()
+
+		q, err := parser.Parse(in)
 		if err != nil {
-			cl.Print("Error executing Query: " + err.Error())
+			cl.Print(fmt.Sprintf("cannot parse query '%s': %s", in, err.Error()))
 			continue
 		}
-		//TODO: PRINT pl
-		cl.Print(pl.String())*/
+
+		res, err := q.Evaluate()
+		if err != nil {
+			cl.Print(fmt.Sprintf("cannot execute query: %s", err.Error()))
+			continue
+		}
+		fmt.Println(res.Entry.String())
+
 	}
 
 }

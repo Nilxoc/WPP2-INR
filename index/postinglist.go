@@ -20,6 +20,10 @@ func (p *Posting) Merge(other *Posting) Posting {
 
 type PostingList []Posting
 
+func (pl *PostingList) Empty() bool {
+	return len(*pl) == 0
+}
+
 func intersectArrays(a []int64, b []int64) []int64 {
 	var i, j int
 	res := make([]int64, 0)
