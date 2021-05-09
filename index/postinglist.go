@@ -163,7 +163,8 @@ func (pl *PostingList) Proximity(other *PostingList, k int64) *PostingList {
 }
 
 func (pl *PostingList) PhraseIntersect(others []*PostingList) *PostingList {
-	currPl := *pl
+	currPl := make(PostingList, len(*pl))
+	copy(currPl, *pl)
 	var k int
 	for i, v := range others {
 		res := currPl.positionalIntersect(v, int64(i+1), func(num1, num2, k int64) bool { return num2-num1 == k })
