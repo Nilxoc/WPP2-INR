@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"g1.wpp2.hsnr/inr/boolret/query"
 	"log"
+
+	"g1.wpp2.hsnr/inr/boolret/query"
 
 	"g1.wpp2.hsnr/inr/boolret/config"
 
@@ -74,7 +75,7 @@ func main() {
 	for {
 
 		//Temporary Token Finder (No complex Queries, just one single token)
-		token := cl.GetInput()
+		/*token := cl.GetInput()
 		pl := indexInstance.GetTermListCorrected(token)
 		if pl == nil {
 			fmt.Println("Not found")
@@ -84,7 +85,7 @@ func main() {
 			fmt.Println("No results found. Try to lower j")
 			continue
 		}
-		fmt.Println(pl.String())
+		fmt.Println(pl.String())*/
 
 		in := cl.GetInput()
 

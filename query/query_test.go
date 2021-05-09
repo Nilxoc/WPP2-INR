@@ -1,10 +1,11 @@
 package query
 
 import (
+	"testing"
+
 	"g1.wpp2.hsnr/inr/boolret/config"
 	"g1.wpp2.hsnr/inr/boolret/index"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestWhenIdxEmptyNoResult(t *testing.T) {
@@ -13,13 +14,13 @@ func TestWhenIdxEmptyNoResult(t *testing.T) {
 }
 
 // FIXME: currently fails, wrong result count
-func WhenQueryEqDocResultFound(t *testing.T) {
+func TestWhenQueryEqDocResultFound(t *testing.T) {
 	p := createParser()
 	idx := p.Context.Index
 	pl := []int64{1}
 	idx.AddTerm("term", &index.Posting{DocID: 1, Pos: pl})
 
-	res := expectResult(t, "term")
+	res := expectResultP(t, "term", p)
 	assert.Equal(t, 1, len(*res.Entry))
 }
 
