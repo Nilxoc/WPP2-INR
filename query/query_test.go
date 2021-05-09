@@ -24,7 +24,7 @@ func TestWhenQueryEqDocResultFound(t *testing.T) {
 }
 
 // FIXME: infinite loop in PostingList#Union?
-func testSubexpression(t *testing.T) {
+func TestSubexpression(t *testing.T) {
 	p := createParser()
 	idx := p.Context.Index
 	idx.AddTerm("java", &index.Posting{DocID: 1, Pos: []int64{1}})

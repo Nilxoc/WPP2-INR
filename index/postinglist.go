@@ -96,7 +96,7 @@ func (pl *PostingList) Union(other *PostingList) *PostingList {
 
 	for p2 < len(*other) {
 		answer = append(answer, (*other)[p2])
-		p1 += 1
+		p2 += 1
 	}
 	return &answer
 }
