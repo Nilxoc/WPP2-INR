@@ -75,7 +75,7 @@ var lexer = stateful.MustSimple([]stateful.Rule{
 	{"BoolOp", `(?i)AND\sNOT|AND|OR`, nil},
 	{"Ident", `[a-zA-Z_]\w*`, nil},
 	{"String", `"(\\"|[^"])*"`, nil},
-	{`Proxim`, `/\d`, nil}, // MUST be over 'Punct'
+	{`Proxim`, `/\d+`, nil}, // MUST be over 'Punct'
 	{"Punct", `[-[!@#$%^&*()+_={}\|:;"'<,>.?/]|]`, nil},
 	{"Number", `[-+]?(\d*\.)?\d+`, nil},
 	{"EOL", `[\n\r]+`, nil},
