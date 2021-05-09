@@ -36,6 +36,33 @@ func TestParseFull(t *testing.T) {
 	testCompile(t, `("term1 term2" OR term3) AND NOT term4 /3 term5`)
 }
 
+// samples from the official task
+
+func TestCompileSample1(t *testing.T) {
+	testCompile(t, "blood AND pressure")
+}
+
+func TestCompileSample2(t *testing.T) {
+	testCompile(t, `blood AND NOT pressure`)
+}
+
+func TestCompileSample3(t *testing.T) {
+	testCompile(t, `(blood OR pressure) AND cardiovascular`)
+}
+
+func TestCompileSample4(t *testing.T) {
+	testCompile(t, `"blood pressure"`)
+}
+
+func TestCompileSample5(t *testing.T) {
+	testCompile(t, `diet /10 health`)
+}
+
+func TestCompileSample6(t *testing.T) {
+	testCompile(t, `diet /10 health AND "red wine"`)
+}
+
+// testCompile validates if the target query compiles
 func testCompile(t *testing.T, q string) {
 	cfg := &config.Config{}
 	idx := index.NewIndexEmpty(cfg)
