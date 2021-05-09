@@ -163,29 +163,39 @@ func (t *Value) Eval(ctx *Context) (*index.PostingList, error) {
 
 	phrase := t.Phrase
 	if phrase != nil {
-		fields := strings.Fields(*phrase)
-
-		fieldLen := len(fields)
-		if fieldLen == 0 {
-			empty := make(index.PostingList, 0)
-			return &empty, nil
-		} else if fieldLen == 1 {
-			return getTerm(ctx, fields[0]), nil
-		} else {
-			terms := getTerms(ctx, fields)
-			first := terms[0]
-
-			others := make([]*index.PostingList, 0, fieldLen-1)
-			for i := 1; i <= fieldLen; i++ {
-				others[i] = getTerm(ctx, fields[i])
-			}
-
-			return first.PhraseIntersect(others), nil
-		}
+		return evalPhrase(ctx, phrase)
 	}
 
-	// TODO: sub-query
-	return nil, nil
+	subExpr := t.Subexpression
+	if subExpr != nil {
+		return subExpr.eval(ctx)
+	}
+
+	return nil, fmt.Errorf("required text, phrase or sub-expression: %v", t)
+}
+
+func evalPhrase(ctx *Context, phrase *string) (*index.PostingList, error) {
+	fields := strings.Fields(*phrase)
+
+	fieldLen := len(fields)
+	if fieldLen == 0 {
+		empty := make(index.PostingList, 0)
+		return &empty, nil
+	}
+	if fieldLen == 1 {
+		// not really a phrase query, get is sufficient
+		return getTerm(ctx, fields[0]), nil
+	}
+	// extract first term, then perform intersect on remaining
+	terms := getTerms(ctx, fields)
+	first := terms[0]
+
+	others := make([]*index.PostingList, 0, fieldLen-1)
+	for i := 1; i <= fieldLen; i++ {
+		others[i] = getTerm(ctx, fields[i])
+	}
+
+	return first.PhraseIntersect(others), nil
 }
 
 func getTerm(ctx *Context, text string) *index.PostingList {

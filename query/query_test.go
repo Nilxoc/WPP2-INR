@@ -13,7 +13,6 @@ func TestWhenIdxEmptyNoResult(t *testing.T) {
 	assert.True(t, res.Entry.Empty())
 }
 
-// FIXME: currently fails, wrong result count
 func TestWhenQueryEqDocResultFound(t *testing.T) {
 	p := createParser()
 	idx := p.Context.Index
@@ -23,6 +22,22 @@ func TestWhenQueryEqDocResultFound(t *testing.T) {
 	res := expectResultP(t, "term", p)
 	assert.Equal(t, 1, len(*res.Entry))
 }
+
+// FIXME: infinite loop in PostingList#Union?
+func testSubexpression(t *testing.T) {
+	p := createParser()
+	idx := p.Context.Index
+	idx.AddTerm("java", &index.Posting{DocID: 1, Pos: []int64{1}})
+	idx.AddTerm("is", &index.Posting{DocID: 1, Pos: []int64{2}})
+	idx.AddTerm("what", &index.Posting{DocID: 2, Pos: []int64{1}})
+	idx.AddTerm("java", &index.Posting{DocID: 2, Pos: []int64{2}})
+	idx.AddTerm("does", &index.Posting{DocID: 3, Pos: []int64{1}})
+
+	res := expectResultP(t, "(what OR does) AND java", p)
+	assert.Equal(t, 1, len(*res.Entry))
+}
+
+// utility
 
 func expectResult(t *testing.T, q string) *Result {
 	parser := createParser()
