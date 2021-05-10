@@ -90,6 +90,10 @@ func tryQuery(query string, t *testing.T, parser *query.AstQueryParser) {
 func TestExamples(t *testing.T) {
 	indexInstance := constructIndexForTest(t)
 
+	if indexInstance == nil {
+		return
+	}
+
 	cfg, _ := config.Parse()
 
 	ctx := query.Context{
