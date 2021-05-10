@@ -71,6 +71,17 @@ func TestSubexpression(t *testing.T) {
 	assert.Equal(t, 1, len(*res.Entry))
 }
 
+func testProximity(t *testing.T) {
+	p := createParser()
+	idx := p.Context.Index
+	idx.AddTerm("term1", &index.Posting{DocID: 1, Pos: []int64{1}})
+	idx.AddTerm("term2", &index.Posting{DocID: 1, Pos: []int64{2}})
+	idx.AddTerm("term3", &index.Posting{DocID: 1, Pos: []int64{3}})
+
+	res := expectResultP(t, "term1 /2 term3", p)
+	assert.Equal(t, 2, len(*res.Entry))
+}
+
 // utility
 
 func expectResult(t *testing.T, q string) *Result {

@@ -75,7 +75,7 @@ var lexer = stateful.MustSimple([]stateful.Rule{
 	{"BoolOp", `(?i)AND\sNOT|AND|OR`, nil},
 	{"Ident", `[a-zA-Z_]\w*`, nil},
 	{"String", `"(\\"|[^"])*"`, nil},
-	{`Proxim`, `/\d+`, nil}, // MUST be over 'Punct'
+	{`Proxim`, `\/\d+`, nil}, // MUST be over 'Punct'
 	{"Punct", `[-[!@#$%^&*()+_={}\|:;"'<,>.?/]|]`, nil},
 	{"Number", `[-+]?(\d*\.)?\d+`, nil},
 	{"EOL", `[\n\r]+`, nil},
@@ -113,7 +113,7 @@ func (t *OpTerm) eval(l *index.PostingList, r *index.PostingList) (*index.Postin
 		return evalOper(op, l, r)
 	}
 	if t.K != nil {
-		return l.Proximity(r, parseK(t.K)), nil
+		return l.Proximity(r, parseK(*t.K)), nil
 	}
 	return nil, fmt.Errorf("unsupported operand: '%v'", op)
 }
@@ -131,10 +131,11 @@ func evalOper(op *string, l *index.PostingList, r *index.PostingList) (*index.Po
 	}
 }
 
-func parseK(k *string) int64 {
-	p, err := strconv.ParseInt(*k, 0, 32)
+func parseK(k string) int64 {
+	i := k[1:len(k)]
+	p, err := strconv.ParseInt(i, 0, 32)
 	if err != nil {
-		panic(fmt.Errorf("cannot parse proximity: '%s'", *k))
+		panic(fmt.Errorf("cannot parse proximity: '%s'", k))
 	}
 	return p
 }
