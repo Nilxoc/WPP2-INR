@@ -16,14 +16,48 @@ func TestWhenIdxEmptyNoResult(t *testing.T) {
 func TestWhenQueryEqDocResultFound(t *testing.T) {
 	p := createParser()
 	idx := p.Context.Index
-	pl := []int64{1}
-	idx.AddTerm("term", &index.Posting{DocID: 1, Pos: pl})
+	idx.AddTerm("term", &index.Posting{DocID: 1, Pos: []int64{1}})
 
 	res := expectResultP(t, "term", p)
 	assert.Equal(t, 1, len(*res.Entry))
 }
 
-// FIXME: infinite loop in PostingList#Union?
+func TestPhraseQuery(t *testing.T) {
+	p := createParser()
+	idx := p.Context.Index
+	idx.AddTerm("first", &index.Posting{DocID: 1, Pos: []int64{1}})
+	idx.AddTerm("second", &index.Posting{DocID: 1, Pos: []int64{2}})
+	idx.AddTerm("third", &index.Posting{DocID: 1, Pos: []int64{3}})
+
+	res := expectResultP(t, `"first second third"`, p)
+
+	e := *res.Entry
+	assert.Equal(t, 1, len(e))
+	assert.Equal(t, int64(1), e[0].DocID)
+}
+
+func TestAndQuery(t *testing.T) {
+	p := createParser()
+	idx := p.Context.Index
+	idx.AddTerm("deleted", &index.Posting{DocID: 1, Pos: []int64{1}})
+	idx.AddTerm("code", &index.Posting{DocID: 1, Pos: []int64{2}})
+	idx.AddTerm("is", &index.Posting{DocID: 1, Pos: []int64{3}})
+	idx.AddTerm("debugged", &index.Posting{DocID: 1, Pos: []int64{4}})
+	idx.AddTerm("code", &index.Posting{DocID: 1, Pos: []int64{5}})
+
+	idx.AddTerm("debugged", &index.Posting{DocID: 2, Pos: []int64{1}})
+	idx.AddTerm("code", &index.Posting{DocID: 2, Pos: []int64{2}})
+
+	idx.AddTerm("code", &index.Posting{DocID: 3, Pos: []int64{1}})
+
+	res := expectResultP(t, `code AND debugged`, p)
+
+	e := *res.Entry
+	assert.Equal(t, 2, len(e))
+	assert.Equal(t, int64(1), e[0].DocID)
+	assert.Equal(t, int64(2), e[1].DocID)
+}
+
 func TestSubexpression(t *testing.T) {
 	p := createParser()
 	idx := p.Context.Index
