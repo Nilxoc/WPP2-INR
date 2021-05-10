@@ -163,7 +163,7 @@ func (t *Value) Eval(ctx *Context) (*index.PostingList, error) {
 
 	phrase := t.Phrase
 	if phrase != nil {
-		return evalPhrase(ctx, phrase)
+		return evalPhrase(ctx, *phrase)
 	}
 
 	subExpr := t.Subexpression
@@ -174,8 +174,10 @@ func (t *Value) Eval(ctx *Context) (*index.PostingList, error) {
 	return nil, fmt.Errorf("required text, phrase or sub-expression: %v", t)
 }
 
-func evalPhrase(ctx *Context, phrase *string) (*index.PostingList, error) {
-	fields := strings.Fields(*phrase)
+func evalPhrase(ctx *Context, phrase string) (*index.PostingList, error) {
+	// remove leading and trailing quotation marks
+	qmLessPhrase := phrase[1 : len(phrase)-1]
+	fields := strings.Fields(qmLessPhrase)
 
 	fieldLen := len(fields)
 	if fieldLen == 0 {
@@ -190,9 +192,10 @@ func evalPhrase(ctx *Context, phrase *string) (*index.PostingList, error) {
 	terms := getTerms(ctx, fields)
 	first := terms[0]
 
-	others := make([]*index.PostingList, 0, fieldLen-1)
-	for i := 1; i <= fieldLen; i++ {
-		others[i] = getTerm(ctx, fields[i])
+	remElem := fieldLen - 1
+	others := make([]*index.PostingList, remElem, remElem)
+	for i := 1; i < fieldLen; i++ {
+		others[i-1] = getTerm(ctx, fields[i])
 	}
 
 	return first.PhraseIntersect(others), nil
