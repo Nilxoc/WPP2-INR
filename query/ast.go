@@ -2,12 +2,13 @@ package query
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
+
 	"g1.wpp2.hsnr/inr/boolret/index"
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer/stateful"
 	"github.com/alecthomas/repr"
-	"strconv"
-	"strings"
 )
 
 type AstQueryParser struct {
@@ -202,7 +203,17 @@ func evalPhrase(ctx *Context, phrase string) (*index.PostingList, error) {
 }
 
 func getTerm(ctx *Context, text string) *index.PostingList {
-	term := ctx.Index.GetTermListCorrected(text)
+	var term index.PostingList
+	if ctx.Config.CSpell {
+		term = ctx.Index.GetTermListCorrected(text)
+	} else {
+		tempTerm := ctx.Index.GetTerm(text)
+		if tempTerm != nil {
+			term = tempTerm.Docs
+		} else {
+			term = index.PostingList{}
+		}
+	}
 	if term != nil {
 		return &term
 	}

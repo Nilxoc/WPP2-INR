@@ -20,16 +20,19 @@ type Config struct {
 	// CSpellThresh threshold for spelling correction
 	// active if less results than the specified value are found
 	CSpellThresh int
+	//Wether to use only doc_dump.txt instead of folder of textfiles
+	UseSingleFileInput bool
 }
 
 func DefaultConfig() *Config {
 	defaultCfg := Config{
-		PDoc:         "",
-		PDict:        "",
-		KGram:        2,
-		JThresh:      0.2,
-		CSpell:       true,
-		CSpellThresh: 5,
+		PDoc:               "",
+		PDict:              "",
+		KGram:              2,
+		JThresh:            0.2,
+		CSpell:             true,
+		CSpellThresh:       5,
+		UseSingleFileInput: false,
 	}
 	return &defaultCfg
 }
@@ -40,7 +43,7 @@ func Parse() (*Config, error) {
 }
 
 func parseConfig(c *Config) (*Config, error) {
-	flag.StringVar(&c.PDoc, "doc", "", "path to input file (txt)")
+	flag.StringVar(&c.PDoc, "docs", "", "path to input folder")
 	flag.StringVar(&c.PDict, "dict", "", "path to dict dump (skip index build) - if docSource also provided saves dict")
 	k := 0
 	flag.IntVar(&k, "k", 2, "k for kgram index")
@@ -48,10 +51,17 @@ func parseConfig(c *Config) (*Config, error) {
 	j := 0.0
 	flag.Float64Var(&j, "j", 0.2, "jaccard threshold")
 	flag.BoolVar(&c.CSpell, "correction", true, "enable error correction")
+	var docPath string
+	flag.StringVar(&docPath, "doc", "", "path to input file (txt)")
 	flag.Parse()
 
 	c.KGram = uint8(k)
 	c.JThresh = float32(j)
+
+	if c.PDoc == "" && docPath != "" {
+		c.PDoc = docPath
+		c.UseSingleFileInput = true
+	}
 
 	if c.PDoc == "" && c.PDict == "" {
 		return nil, fmt.Errorf("input file path or dictionary path required ")
