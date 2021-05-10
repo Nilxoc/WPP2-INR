@@ -14,7 +14,7 @@ import (
 	"g1.wpp2.hsnr/inr/boolret/tokenizer"
 )
 
-func constructIndexForTest(t *testing.T) *index.Index {
+func constructIndexForTest(t *testing.T, b *testing.B) *index.Index {
 	//TODO Sollte wahrscheinlich error verwenden wenn doc_dump nicht
 	//gefunden
 	var docSource string
@@ -23,7 +23,11 @@ func constructIndexForTest(t *testing.T) *index.Index {
 	workDir := path.Dir(testFnPath)
 	docSource, err := file.AbsPath(path.Join(workDir, "doc_dump.txt"))
 	if err != nil {
-		t.Errorf("Could not get Abs Path to doc_dump.txt: %v", err)
+		if t != nil {
+			t.Errorf("Could not get Abs Path to doc_dump.txt: %v", err)
+		} else {
+			b.Errorf("Could not get Abs Path to doc_dump.txt: %v", err)
+		}
 		return nil
 	}
 
@@ -43,16 +47,24 @@ func constructIndexForTest(t *testing.T) *index.Index {
 	tokStart := time.Now()
 
 	if err := tokenizer.ParseSingleFile(docSource); err != nil {
-		t.Logf("No doc_dump.txt file found. Skipping Performance-Testing")
+		if t != nil {
+			t.Logf("No doc_dump.txt file found. Skipping Performance-Testing")
+		} else {
+			b.Logf("No doc_dump.txt file found. Skipping Performance-Testing")
+		}
 		return nil
 	}
-	t.Logf("Loaded and parsed document within %s", time.Since(tokStart).String())
+	if t != nil {
+		t.Logf("Loaded and parsed document within %s", time.Since(tokStart).String())
+	} else {
+		b.Logf("Loaded and parsed document within %s", time.Since(tokStart).String())
+	}
 
 	return indexInstance
 }
 
 func TestMain(t *testing.T) {
-	indexInstance := constructIndexForTest(t)
+	indexInstance := constructIndexForTest(t, nil)
 	if indexInstance == nil {
 		return
 	}
@@ -88,11 +100,7 @@ func tryQuery(query string, t *testing.T, parser *query.AstQueryParser) {
 
 // FIXME: examples currently do not work
 func TestExamples(t *testing.T) {
-	indexInstance := constructIndexForTest(t)
-
-	if indexInstance == nil {
-		return
-	}
+	indexInstance := constructIndexForTest(t, nil)
 
 	cfg := config.DefaultConfig()
 
@@ -110,4 +118,33 @@ func TestExamples(t *testing.T) {
 	tryQuery("\"blood pressure\"", t, &parser)
 	tryQuery("diet /10 health", t, &parser)
 	tryQuery("diet /10 health AND \"red wine\"", t, &parser)
+}
+
+func BenchmarkINR(b *testing.B) {
+	idx := constructIndexForTest(nil, b)
+	cfg := config.DefaultConfig()
+	ctx := query.Context{
+		Index:  idx,
+		Config: cfg,
+	}
+	parser := query.AstQueryParser{Context: &ctx}
+
+	benchmarks := []string{
+		"blood AND pressure",
+		"blood AND NOT pressure",
+		"(blood OR pressure) AND cardiovascular",
+		"\"blood pressure\"",
+		"diet /10 health",
+		"diet /10 health AND \"red wine\"",
+	}
+
+	for _, bm := range benchmarks {
+		b.Run(bm, func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				q, _ := parser.Parse(bm)
+				_, _ = q.Evaluate()
+			}
+		})
+	}
+
 }
