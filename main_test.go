@@ -94,7 +94,7 @@ func TestExamples(t *testing.T) {
 		return
 	}
 
-	cfg, _ := config.Parse()
+	cfg := config.DefaultConfig()
 
 	ctx := query.Context{
 		Index:  indexInstance,
