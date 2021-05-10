@@ -104,6 +104,6 @@ func TestExamples(t *testing.T) {
 	tryQuery("blood AND NOT pressure", t, &parser)
 	tryQuery("(blood OR pressure) AND cardiovascular", t, &parser)
 	tryQuery("\"blood pressure\"", t, &parser)
-	tryQuery("diet \\10 health", t, &parser)
-	tryQuery("diet \\10 health AND \"red wine\"", t, &parser)
+	tryQuery("diet /10 health", t, &parser)
+	tryQuery("diet /10 health AND \"red wine\"", t, &parser)
 }
