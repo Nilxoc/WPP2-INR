@@ -87,7 +87,7 @@ func tryQuery(query string, t *testing.T, parser *query.AstQueryParser) {
 }
 
 // FIXME: examples currently do not work
-func testExamples(t *testing.T) {
+func TestExamples(t *testing.T) {
 	indexInstance := constructIndexForTest(t)
 
 	cfg, _ := config.Parse()
