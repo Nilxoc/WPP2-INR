@@ -1,13 +1,14 @@
 package tokenizer
 
 import (
-	"g1.wpp2.hsnr/inr/boolret/config"
 	"testing"
+
+	"g1.wpp2.hsnr/inr/boolret/config"
 
 	"g1.wpp2.hsnr/inr/boolret/index"
 )
 
-const text1 string = "FOO\tBar\t\"Title\"\tHallo Welt, dies i'm % ist ein Test!"
+const text1 string = "FOO\tBar\tnewTitle\t\"Title\" Hallo Welt, dies i'm % ist ein Test!"
 const text1TokenCount int = 8
 
 var text1Tokens = map[string]int{"title": 1, "hallo": 2, "welt": 3, "dies": 4, "i'm": 5, "ist": 6, "ein": 7, "test": 8}
@@ -50,7 +51,12 @@ func TestTokenizer(t *testing.T) {
 	}
 
 	for k, pos := range text1Tokens {
-		idxPos := idx.GetTerm(k).Docs[0].Pos[0]
+		idxPosT := idx.GetTerm(k)
+		if idxPosT == nil {
+			t.Errorf("Could not find %s!", k)
+			continue
+		}
+		idxPos := idxPosT.Docs[0].Pos[0]
 		if int(idxPos) != pos {
 			t.Errorf("Invalid Position for token %s. Expected %d got %d", k, pos, idxPos)
 		}

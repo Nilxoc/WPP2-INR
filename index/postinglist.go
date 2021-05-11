@@ -56,12 +56,12 @@ func intersectArrays(a []int64, b []int64) []int64 {
 	return res
 }
 
-func (pl *PostingList) String() string {
+func (pl *PostingList) String(idx *Index) string {
 	out := ""
 	//out += fmt.Sprintln("Found the following documents:")
 
 	for _, p := range *pl {
-		out += fmt.Sprintf("%d ", p.DocID)
+		out += fmt.Sprintf("%s ", idx.GetDocDisplay(p.DocID))
 	}
 	return out
 }

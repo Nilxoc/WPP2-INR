@@ -1,6 +1,7 @@
 package index
 
 import (
+	"fmt"
 	"sort"
 
 	"g1.wpp2.hsnr/inr/boolret/config"
@@ -15,11 +16,12 @@ type IndexEntry struct {
 }
 
 type Index struct {
-	Index map[string]*IndexEntry
-	K     int
-	r     int
-	j     float32
-	kgram *KGramIndex
+	Index    map[string]*IndexEntry
+	K        int
+	r        int
+	j        float32
+	kgram    *KGramIndex
+	DocIDMap map[int64]string
 }
 
 type SpellCorrectionResult struct {
@@ -29,9 +31,10 @@ type SpellCorrectionResult struct {
 
 func NewIndexEmpty(c *config.Config) *Index {
 	idx := &Index{
-		K: int(c.KGram),
-		r: c.CSpellThresh,
-		j: c.JThresh,
+		K:        int(c.KGram),
+		r:        c.CSpellThresh,
+		j:        c.JThresh,
+		DocIDMap: make(map[int64]string),
 	}
 	idx.Index = make(map[string]*IndexEntry)
 	idx.kgram = InitKGramIndex(idx.K)
@@ -62,9 +65,12 @@ func NewIndexFromFile(cfg *config.Config) (*Index, error) {
 }
 
 ///INDEX SPECIFIC METHODS
-func (i *Index) AddTerm(term string, posting *Posting) {
+func (i *Index) AddTerm(term string, posting *Posting, docIDString string) {
 	if entry, found := i.Index[term]; found {
 		entry.Docs = append(entry.Docs, *posting)
+		if _, f := i.DocIDMap[posting.DocID]; !f {
+			i.DocIDMap[posting.DocID] = docIDString
+		}
 		//i.kgram.AddKGram(term, entry)
 	} else {
 		t := IndexEntry{
@@ -74,6 +80,7 @@ func (i *Index) AddTerm(term string, posting *Posting) {
 		t.Docs[0] = *posting
 		i.Index[term] = &t
 		i.kgram.AddKGram(term, &t)
+		i.DocIDMap[posting.DocID] = docIDString
 	}
 }
 
@@ -210,6 +217,13 @@ func (i *Index) Len() int {
 	return len(i.Index)
 }
 
-func (i *IndexEntry) String() string {
-	return i.Docs.String()
+func (i *IndexEntry) String(idx *Index) string {
+	return i.Docs.String(idx)
+}
+
+func (i *Index) GetDocDisplay(id int64) string {
+	if s, f := i.DocIDMap[id]; f {
+		return s
+	}
+	return fmt.Sprintf("{%d}", id)
 }
