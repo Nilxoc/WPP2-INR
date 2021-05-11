@@ -2,13 +2,13 @@ package query
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
-
 	"g1.wpp2.hsnr/inr/boolret/index"
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer/stateful"
 	"github.com/alecthomas/repr"
+	"strconv"
+	"strings"
+	"sync"
 )
 
 type AstQueryParser struct {
@@ -88,24 +88,84 @@ var parser = participle.MustBuild(&Expression{},
 	//participle.UseLookahead(3),
 )
 
+type RHSParallelEval struct {
+	idx    int
+	ctx    *Context
+	wg     *sync.WaitGroup
+	errors chan error
+	evals  chan RHSResultPar
+}
+
+type RHSResultPar struct {
+	idx    int
+	result *Result
+}
+
 func (e *Expression) eval(ctx *Context) (*index.PostingList, error) {
 	left, err := e.Left.Eval(ctx)
 	if err != nil {
 		return nil, err
 	}
-
-	for _, r := range e.Right {
-		eval, err := r.Term.Eval(ctx)
-		if err != nil {
-			return nil, err
-		}
-
-		left, err = r.eval(left, eval)
-		if err != nil {
-			return nil, err
-		}
+	rSize := len(e.Right)
+	if rSize == 0 {
+		return left, nil
 	}
-	return left, nil
+
+	return e.evalRHSParallel(ctx, left)
+}
+
+// evalRHSParallel evaluates all RHS in parallel and sequentially merges back to LHS
+func (e *Expression) evalRHSParallel(ctx *Context, left *index.PostingList) (*index.PostingList, error) {
+	errors := make(chan error)
+	done := make(chan bool)
+	var wg sync.WaitGroup
+
+	rSize := len(e.Right)
+	wg.Add(rSize)
+
+	res := make(chan RHSResultPar, rSize)
+	for i, r := range e.Right {
+		evalCtx := RHSParallelEval{
+			idx:    i,
+			ctx:    ctx,
+			wg:     &wg,
+			errors: errors,
+			evals:  res,
+		}
+		go r.Term.EvalParallel(&evalCtx)
+	}
+
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		break
+	case err := <-errors:
+		close(errors)
+		return nil, err
+	}
+
+	// sequential sorted collect
+	var slice = make([]*Result, rSize)
+	for i := 0; i < rSize; i++ {
+		val := <-res
+		slice[val.idx] = val.result
+	}
+
+	// sequential ordered eval
+	leftMerged := left
+	for i, r := range e.Right {
+		eval, err := r.eval(left, slice[i].Entry)
+		if err != nil {
+			return nil, err
+		}
+		leftMerged = eval
+	}
+
+	return leftMerged, nil
 }
 
 func (t *OpTerm) eval(l *index.PostingList, r *index.PostingList) (*index.PostingList, error) {
@@ -155,6 +215,30 @@ func (t *Term) Eval(ctx *Context) (*index.PostingList, error) {
 		return eval, nil
 	}
 	return left, nil
+}
+
+func (t *Term) EvalParallel(evalCtx *RHSParallelEval) {
+	defer evalCtx.wg.Done()
+
+	left, err := t.Left.Eval(evalCtx.ctx)
+	if err != nil {
+		evalCtx.errors <- err
+		return
+	}
+	if len(t.Right) == 0 {
+		evalCtx.evals <- RHSResultPar{idx: evalCtx.idx, result: &Result{Entry: left}}
+		return
+	}
+
+	for _, r := range t.Right {
+		eval, err := r.Eval(evalCtx.ctx)
+		if err != nil {
+			evalCtx.errors <- err
+			return
+		}
+		// TODO: are all paths evaluated
+		evalCtx.evals <- RHSResultPar{idx: evalCtx.idx, result: &Result{Entry: eval}}
+	}
 }
 
 func (t *Value) Eval(ctx *Context) (*index.PostingList, error) {
