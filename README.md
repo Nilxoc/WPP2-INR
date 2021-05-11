@@ -4,7 +4,7 @@ Basic information retrieval system which supports boolean queries.
 
 ## Running
 
-Compile the INR-System: `go build .` *(Requires GO > 1.16)*
+Compile the INR-System: `go build .` *(Requires GO >= 1.16)*
 
 Run the INR-System: `./boolret [args]`
 
@@ -52,6 +52,8 @@ The following configuration options are available:
 
 
 ## Performance
+
+The folowing metrics come from a test system running *MacOS with Intel(R) Core(TM) i5-8259U CPU @ 2.30GHz* CPU 
 
 ### Meta
 
