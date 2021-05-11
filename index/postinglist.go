@@ -169,7 +169,10 @@ func (pl *PostingList) PhraseIntersect(others []*PostingList) *PostingList {
 	//Add Positions after first to Position List. This is only important for proximity queries
 	//Even then, the middle values could technically be omitted
 	for i, posting := range currPl {
-		for j, pos := range posting.Pos {
+		origPos := make([]int64, len(posting.Pos))
+		copy(origPos, posting.Pos)
+		//Possible Memory optimization: Only copy every second element
+		for j, pos := range origPos {
 			if (j % 2) != 0 {
 				continue
 			}
@@ -182,7 +185,7 @@ func (pl *PostingList) PhraseIntersect(others []*PostingList) *PostingList {
 
 			insertPos := 0
 			if j != 0 {
-				insertPos = j + ((j-1)/2)*insertCount
+				insertPos = j + (j/2)*insertCount
 			}
 			currPl[i].Pos = insert(currPl[i].Pos, insertPos, toInsert...)
 		}
