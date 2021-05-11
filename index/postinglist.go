@@ -11,6 +11,21 @@ type Posting struct {
 	Pos   []int64
 }
 
+func insert(s []int64, k int, vs ...int64) []int64 {
+	//https://github.com/golang/go/wiki/SliceTricks#insert
+	if n := len(s) + len(vs); n <= cap(s) {
+		s2 := s[:n]
+		copy(s2[k+len(vs):], s[k:])
+		copy(s2[k:], vs)
+		return s2
+	}
+	s2 := make([]int64, len(s)+len(vs))
+	copy(s2, s[:k])
+	copy(s2[k:], vs)
+	copy(s2[k+len(vs):], s[k:])
+	return s2
+}
+
 func (p *Posting) Merge(other *Posting) Posting {
 	newPos := append(p.Pos, other.Pos...)
 	sort.Slice(newPos,
@@ -24,29 +39,12 @@ func (pl *PostingList) Empty() bool {
 	return len(*pl) == 0
 }
 
-func intersectArrays(a []int64, b []int64) []int64 {
-	var i, j int
-	res := make([]int64, 0)
-	for i < len(a) && j < len(b) {
-		if a[i] == b[j] {
-			res = append(res, a[i])
-			i += 1
-			j += 1
-		} else if a[i] < b[j] {
-			i += 1
-		} else {
-			j += 1
-		}
-	}
-	return res
-}
-
-func (pl *PostingList) String() string {
+func (pl *PostingList) String(idx *Index) string {
 	out := ""
 	//out += fmt.Sprintln("Found the following documents:")
 
 	for _, p := range *pl {
-		out += fmt.Sprintf("%d ", p.DocID)
+		out += fmt.Sprintf("%s ", idx.GetDocDisplay(p.DocID))
 	}
 	return out
 }
@@ -163,44 +161,37 @@ func (pl *PostingList) Proximity(other *PostingList, k int64) *PostingList {
 }
 
 func (pl *PostingList) PhraseIntersect(others []*PostingList) *PostingList {
-	currPl := make(PostingList, len(*pl))
-	copy(currPl, *pl)
-	var k int
-	for i, v := range others {
-		res := currPl.positionalIntersect(v, int64(i+1), func(num1, num2, k int64) bool { return num2-num1 == k })
-		for _, v2 := range *res {
-			for k < len(currPl) && currPl[k].DocID < v2.DocID {
-				currPl = append(currPl[:k], currPl[k+1:]...)
-			}
-
-			if k >= len(currPl) {
-				k -= 1
-				break
-			}
-
-			if v2.DocID == currPl[k].DocID {
-				currPl[k] = Posting{v2.DocID, intersectArrays(currPl[k].Pos, v2.Pos)}
-				k += 1
-			}
-		}
-		currPl = currPl[:k]
-		k = 0
+	currPl := *pl
+	for _, v := range others {
+		currPl = *(currPl.positionalIntersect(v, int64(1), func(num1, num2, k int64) bool { return num2-num1 == k }))
 	}
 
 	//Add Positions after first to Position List. This is only important for proximity queries
 	//Even then, the middle values could technically be omitted
-	res := make(PostingList, 0, len(currPl))
-	for _, v := range currPl {
-		var posList []int64
-		for _, pos := range v.Pos {
-			posList = append(posList, pos)
-			for i := int64(0); i < int64(len(others)); i++ {
-				posList = append(posList, pos+int64(1)+i)
+	for i, posting := range currPl {
+		origPos := make([]int64, len(posting.Pos))
+		copy(origPos, posting.Pos)
+		//Possible Memory optimization: Only copy every second element
+		for j, pos := range origPos {
+			if (j % 2) != 0 {
+				continue
 			}
+
+			insertCount := len(others) - 1
+			toInsert := make([]int64, insertCount)
+			for k := 0; k < len(others)-1; k += 1 {
+				toInsert[k] = pos - int64(k+1)
+			}
+
+			insertPos := 0
+			if j != 0 {
+				insertPos = j + (j/2)*insertCount
+			}
+			currPl[i].Pos = insert(currPl[i].Pos, insertPos, toInsert...)
 		}
-		res = append(res, Posting{v.DocID, posList})
 	}
-	return &res
+
+	return &currPl
 }
 
 func (pl *PostingList) Difference(other *PostingList) *PostingList {
