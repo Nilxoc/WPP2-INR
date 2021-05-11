@@ -39,23 +39,6 @@ func (pl *PostingList) Empty() bool {
 	return len(*pl) == 0
 }
 
-func intersectArrays(a []int64, b []int64) []int64 {
-	var i, j int
-	res := make([]int64, 0)
-	for i < len(a) && j < len(b) {
-		if a[i] == b[j] {
-			res = append(res, a[i])
-			i += 1
-			j += 1
-		} else if a[i] < b[j] {
-			i += 1
-		} else {
-			j += 1
-		}
-	}
-	return res
-}
-
 func (pl *PostingList) String(idx *Index) string {
 	out := ""
 	//out += fmt.Sprintln("Found the following documents:")
