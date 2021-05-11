@@ -142,6 +142,9 @@ func BenchmarkINR(b *testing.B) {
 		"\"blood pressure\"",
 		"diet /10 health",
 		"diet /10 health AND \"red wine\"",
+		"blod",
+		"presure",
+		"analysi",
 	}
 
 	for _, bm := range benchmarks {
