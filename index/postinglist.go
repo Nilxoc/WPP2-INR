@@ -163,44 +163,31 @@ func (pl *PostingList) Proximity(other *PostingList, k int64) *PostingList {
 }
 
 func (pl *PostingList) PhraseIntersect(others []*PostingList) *PostingList {
-	currPl := make(PostingList, len(*pl))
-	copy(currPl, *pl)
-	var k int
-	for i, v := range others {
-		res := currPl.positionalIntersect(v, int64(i+1), func(num1, num2, k int64) bool { return num2-num1 == k })
-		for _, v2 := range *res {
-			for k < len(currPl) && currPl[k].DocID < v2.DocID {
-				currPl = append(currPl[:k], currPl[k+1:]...)
-			}
-
-			if k >= len(currPl) {
-				k -= 1
-				break
-			}
-
-			if v2.DocID == currPl[k].DocID {
-				currPl[k] = Posting{v2.DocID, intersectArrays(currPl[k].Pos, v2.Pos)}
-				k += 1
-			}
-		}
-		currPl = currPl[:k]
-		k = 0
+	currPl := *pl
+	for _, v := range others {
+		currPl = *(currPl.positionalIntersect(v, int64(1), func(num1, num2, k int64) bool { return num2-num1 == k }))
 	}
 
 	//Add Positions after first to Position List. This is only important for proximity queries
 	//Even then, the middle values could technically be omitted
-	res := make(PostingList, 0, len(currPl))
-	for _, v := range currPl {
-		var posList []int64
-		for _, pos := range v.Pos {
-			posList = append(posList, pos)
-			for i := int64(0); i < int64(len(others)); i++ {
-				posList = append(posList, pos+int64(1)+i)
+	for i, posting := range currPl {
+		for j, pos := range posting.Pos {
+			if (j % 2) != 0 {
+				continue
 			}
+
+			insertCount := len(others) - 1
+			toInsert := make([]int64, insertCount)
+			for k := 0; k < len(others)-1; k += 1 {
+				toInsert[k] = pos - int64(k+1)
+			}
+
+			currPl[i].Pos = append(currPl[i].Pos, toInsert...)
 		}
-		res = append(res, Posting{v.DocID, posList})
+		sort.Slice(currPl[i].Pos, func(p, q int) bool { return currPl[i].Pos[p] < currPl[i].Pos[q] })
 	}
-	return &res
+
+	return &currPl
 }
 
 func (pl *PostingList) Difference(other *PostingList) *PostingList {
