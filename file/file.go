@@ -4,19 +4,18 @@ import (
 	"encoding/gob"
 	"io/ioutil"
 	"os"
-	"path"
 	"path/filepath"
 )
 
 func AbsPath(p string) (string, error) {
-	if path.IsAbs(p) {
+	if filepath.IsAbs(p) {
 		return p, nil
 	}
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
 		return "", err
 	}
-	return path.Join(dir, p), nil
+	return filepath.Join(dir, p), nil
 }
 
 func readAsByte(path string) ([]byte, error) {
@@ -55,7 +54,7 @@ func ListFiles(pathD string) ([]string, error) {
 	}
 	for _, f := range entr {
 		if !f.IsDir() {
-			res = append(res, path.Join(pathD, f.Name()))
+			res = append(res, filepath.Join(pathD, f.Name()))
 		}
 	}
 	return res, nil

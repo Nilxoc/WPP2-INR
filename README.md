@@ -78,3 +78,6 @@ Use ``go test -bench .`` to test the performance of query retrieval.
 |"blood pressure"|234 ms|
 |diet /10 health|120 ms|
 |diet /10 health AND "red wine"|173 ms|
+|blod|2145 ms|
+|presure|4497 ms|
+|analysi|3041 ms|
