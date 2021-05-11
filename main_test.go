@@ -1,6 +1,7 @@
 package main
 
 import (
+	"g1.wpp2.hsnr/inr/boolret/file"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -97,7 +98,6 @@ func tryQuery(query string, t *testing.T, parser *query.AstQueryParser) {
 	_, _ = q.Evaluate()
 }
 
-// FIXME: examples currently do not work
 func TestExamples(t *testing.T) {
 	indexInstance := constructIndexForTest(t, nil)
 
@@ -155,5 +155,50 @@ func BenchmarkINR(b *testing.B) {
 			}
 		})
 	}
+}
 
+func TestConstruction(t *testing.T) {
+	cfg := config.DefaultConfig()
+	cfg.PDoc = workDirPath("doc_dump.txt")
+
+	idx := index.NewIndexEmpty(cfg)
+	tokenz := tokenizer.InitTokenizer(idx)
+
+	absDocPath, err := file.AbsPath(cfg.PDoc)
+	if err != nil {
+		t.Errorf("cannot create path: %e", err)
+	}
+
+	err = tokenz.ParseSingleFile(absDocPath)
+	if err != nil {
+		t.Errorf("cannot parse file: %e", err)
+	}
+}
+
+func BenchmarkConstruction(b *testing.B) {
+	cfg := config.DefaultConfig()
+	cfg.PDoc = workDirPath("doc_dump.txt")
+
+	idx := index.NewIndexEmpty(cfg)
+	tokenz := tokenizer.InitTokenizer(idx)
+
+	absDocPath, err := file.AbsPath(cfg.PDoc)
+	if err != nil {
+		b.Errorf("cannot create path: %e", err)
+	}
+
+	err = tokenz.ParseSingleFile(absDocPath)
+	if err != nil {
+		b.Errorf("cannot parse file: %e", err)
+	}
+}
+
+func workDirPath(path string) string {
+	_, testFnPath, _, _ := runtime.Caller(0)
+	pwd := filepath.Dir(testFnPath)
+	docSource, err := filepath.Abs(filepath.Join(pwd, path))
+	if err != nil {
+		panic(err)
+	}
+	return docSource
 }
