@@ -102,6 +102,10 @@ func tryQuery(query string, t *testing.T, parser *query.AstQueryParser) {
 func TestExamples(t *testing.T) {
 	indexInstance := constructIndexForTest(t, nil)
 
+	if indexInstance == nil {
+		return
+	}
+
 	cfg := config.DefaultConfig()
 
 	ctx := query.Context{
@@ -122,6 +126,9 @@ func TestExamples(t *testing.T) {
 
 func BenchmarkINR(b *testing.B) {
 	idx := constructIndexForTest(nil, b)
+	if idx == nil {
+		return
+	}
 	cfg := config.DefaultConfig()
 	ctx := query.Context{
 		Index:  idx,
