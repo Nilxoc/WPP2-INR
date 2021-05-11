@@ -50,34 +50,35 @@ The following configuration options are available:
 * `AND NOT`
 * `OR`
 
+## Benchmarks
 
-## Performance
+Example benchmarks are provided with the _NFCorpus_.
+Use ``go test -bench .`` to test the performance of query retrieval.
 
-The folowing metrics come from a test system running *MacOS with Intel(R) Core(TM) i5-8259U CPU @ 2.30GHz* CPU 
+System Specs:
+* OS: Linux
+* CPU: Intel(R) Core(TM) i7-7700K CPU @ 4.20GHz
 
 ### Meta
 
 Use ``go test -v main_test.go`` to retrieve the Data.
-> Requires ``doc_dump.txt`` to be present in the same folder 
 
-|Action|rounded Time|
-|:-|-:|
-| Loading and Creation of Term Index (using single doc_dump.txt) file | 660 ms|
-| Single Term lookup | 400 ns |
-|Corrected Term lookup | 4 ms |
+> Requires ``doc_dump.txt`` to be present in the same path.
 
-### Query Performance
+| action                    | ms |
+|---------------------------|---:|
+| file read, index creation | 53 |
 
-Use ``go test -bench .`` to test the performance of query retrieval.
+### Queries
 
-|Query|Time|
-|:-|-:|
-|blood AND pressure|73 ms|
-|blood AND NOT pressure|47 ms|
-|(blood OR pressure) AND cardiovascular|184 ms|
-|"blood pressure"|234 ms|
-|diet /10 health|120 ms|
-|diet /10 health AND "red wine"|173 ms|
-|blod|2145 ms|
-|presure|4497 ms|
-|analysi|3041 ms|
+| query                                  |   ns/op |    ms/op |
+|----------------------------------------|--------:|---------:|
+| blood AND pressure                     |   63533 | 0.063533 |
+| blood AND NOT pressure                 |   40837 | 0.040837 |
+| (blood OR pressure) AND cardiovascular | 193964  | 0.193964 |
+| "blood pressure"                       |  150717 | 0.150717 |
+| diet /10 health                        |  102354 | 0.102354 |
+| diet /10 health AND "red wine"         |  147999 | 0.147999 |
+| blod                                   | 1647286 | 1.647286 |
+| presure                                | 3272726 | 3.272726 |
+| analysi                                | 2156748 | 2.156748 |
