@@ -38,12 +38,6 @@ The following configuration options are available:
 * Proximity
   * `diet /[k] health` (eg. `k = 10`)
 
-> **Notice:**
->
-> Instead of "\\" for Proximity-Queries we decided to use "/" instead.
->
-> eg: ``diet /[k] health`` instead of ``diet \[k] health``
-
 ### Junctions
 
 * `AND`
