@@ -1,9 +1,9 @@
 package index
 
 import (
-	"fmt"
-	"g1.wpp2.hsnr/inr/boolret/config"
 	"sort"
+
+	"g1.wpp2.hsnr/inr/boolret/config"
 
 	"g1.wpp2.hsnr/inr/boolret/file"
 	"g1.wpp2.hsnr/inr/boolret/index/spell"
@@ -20,6 +20,11 @@ type Index struct {
 	r     int
 	j     float32
 	kgram *KGramIndex
+}
+
+type SpellCorrectionResult struct {
+	Replacements []string
+	Docs         PostingList
 }
 
 func NewIndexEmpty(c *config.Config) *Index {
@@ -171,7 +176,7 @@ func (i *Index) getCorrectedDocs(term string, altCount int) []*IndexEntry {
 
 	res := make([]*IndexEntry, 0, min)
 	for i := 0; i < min; i++ {
-		fmt.Printf("Did you mean %s ?\n", candidates[i].entry.Term)
+		//Refactor: Move to CLI handler fmt.Printf("Did you mean %s ?\n", candidates[i].entry.Term)
 		res = append(res, candidates[i].entry)
 		totalAdd += len(candidates[i].entry.Docs)
 		if totalAdd >= altCount {
@@ -183,17 +188,18 @@ func (i *Index) getCorrectedDocs(term string, altCount int) []*IndexEntry {
 	return res
 }
 
-func (i *Index) GetTermListCorrected(term string) PostingList {
+func (i *Index) GetTermListCorrected(term string) *SpellCorrectionResult {
 	tmp := i.GetTermSuggestions(term)
 	if len(tmp) == 1 {
-		return tmp[0].Docs
+		return &SpellCorrectionResult{Docs: tmp[0].Docs, Replacements: []string{tmp[0].Term}}
 	}
-
+	tms := make([]string, 0)
 	res := make(PostingList, 0)
 	for _, e := range tmp {
 		res = append(res, e.Docs...)
+		tms = append(tms, e.Term)
 	}
-	return res
+	return &SpellCorrectionResult{Docs: res, Replacements: tms}
 }
 
 func (i *Index) SaveIndex(path string) error {

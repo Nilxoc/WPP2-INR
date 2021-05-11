@@ -1,7 +1,7 @@
 package main
 
 import (
-	"path"
+	"path/filepath"
 	"runtime"
 	"testing"
 	"time"
@@ -9,7 +9,6 @@ import (
 	"g1.wpp2.hsnr/inr/boolret/config"
 	"g1.wpp2.hsnr/inr/boolret/query"
 
-	"g1.wpp2.hsnr/inr/boolret/file"
 	"g1.wpp2.hsnr/inr/boolret/index"
 	"g1.wpp2.hsnr/inr/boolret/tokenizer"
 )
@@ -20,8 +19,8 @@ func constructIndexForTest(t *testing.T, b *testing.B) *index.Index {
 	var docSource string
 
 	_, testFnPath, _, _ := runtime.Caller(0)
-	workDir := path.Dir(testFnPath)
-	docSource, err := file.AbsPath(path.Join(workDir, "doc_dump.txt"))
+	workDir := filepath.Dir(testFnPath)
+	docSource, err := filepath.Abs(filepath.Join(workDir, "doc_dump.txt"))
 	if err != nil {
 		if t != nil {
 			t.Errorf("Could not get Abs Path to doc_dump.txt: %v", err)
@@ -85,7 +84,7 @@ func TestMain(t *testing.T) {
 		t.Error("Not found corrected tokens")
 		return
 	}
-	if len(pl) == 0 {
+	if len(pl.Docs) == 0 {
 		t.Error("No results found. Try to lower j")
 		return
 	}
@@ -101,6 +100,10 @@ func tryQuery(query string, t *testing.T, parser *query.AstQueryParser) {
 // FIXME: examples currently do not work
 func TestExamples(t *testing.T) {
 	indexInstance := constructIndexForTest(t, nil)
+
+	if indexInstance == nil {
+		return
+	}
 
 	cfg := config.DefaultConfig()
 
@@ -122,6 +125,9 @@ func TestExamples(t *testing.T) {
 
 func BenchmarkINR(b *testing.B) {
 	idx := constructIndexForTest(nil, b)
+	if idx == nil {
+		return
+	}
 	cfg := config.DefaultConfig()
 	ctx := query.Context{
 		Index:  idx,
