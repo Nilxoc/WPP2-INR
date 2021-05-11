@@ -11,6 +11,21 @@ type Posting struct {
 	Pos   []int64
 }
 
+func insert(s []int64, k int, vs ...int64) []int64 {
+	//https://github.com/golang/go/wiki/SliceTricks#insert
+	if n := len(s) + len(vs); n <= cap(s) {
+		s2 := s[:n]
+		copy(s2[k+len(vs):], s[k:])
+		copy(s2[k:], vs)
+		return s2
+	}
+	s2 := make([]int64, len(s)+len(vs))
+	copy(s2, s[:k])
+	copy(s2[k:], vs)
+	copy(s2[k+len(vs):], s[k:])
+	return s2
+}
+
 func (p *Posting) Merge(other *Posting) Posting {
 	newPos := append(p.Pos, other.Pos...)
 	sort.Slice(newPos,
@@ -182,9 +197,12 @@ func (pl *PostingList) PhraseIntersect(others []*PostingList) *PostingList {
 				toInsert[k] = pos - int64(k+1)
 			}
 
-			currPl[i].Pos = append(currPl[i].Pos, toInsert...)
+			insertPos := 0
+			if j != 0 {
+				insertPos = j + ((j-1)/2)*insertCount
+			}
+			currPl[i].Pos = insert(currPl[i].Pos, insertPos, toInsert...)
 		}
-		sort.Slice(currPl[i].Pos, func(p, q int) bool { return currPl[i].Pos[p] < currPl[i].Pos[q] })
 	}
 
 	return &currPl
