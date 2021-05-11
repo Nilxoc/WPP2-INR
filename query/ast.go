@@ -206,7 +206,7 @@ func evalPhrase(ctx *Context, phrase string) (*index.PostingList, error) {
 func getTerm(ctx *Context, text string) *index.PostingList {
 	var term index.PostingList
 	if ctx.Config.CSpell {
-		term = ctx.Index.GetTermListCorrected(text)
+		term = ctx.Index.GetTermListCorrected(text).Docs
 	} else {
 		tempTerm := ctx.Index.GetTerm(text)
 		if tempTerm != nil {
