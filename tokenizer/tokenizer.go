@@ -3,7 +3,6 @@ package tokenizer
 import (
 	"fmt"
 	"path"
-	"strconv"
 	"strings"
 
 	"g1.wpp2.hsnr/inr/boolret/file"
@@ -26,6 +25,7 @@ func (t *Tokenizer) ParseSingleFile(path string) error {
 	return t.ParseString(fileString)
 }
 
+/* UNUSED
 func getIDFromFilename(name string) int {
 	parts := strings.Split(name, "-")
 	if len(parts) == 2 {
@@ -37,23 +37,24 @@ func getIDFromFilename(name string) int {
 	}
 	return -1
 }
+*/
 
 func (t *Tokenizer) ParseMultiFile(pathD string) error {
 	docs, err := file.ListFiles(pathD)
 	if err != nil {
 		return err
 	}
-	for _, docPath := range docs {
+	for dID, docPath := range docs {
 		content, err := file.ReadAsString(docPath)
 		if err != nil {
 			return err
 		}
 		baseFileName := strings.TrimSuffix(path.Base(docPath), path.Ext(docPath))
-		docID := getIDFromFilename(baseFileName)
-		if docID == -1 {
+		//docID := getIDFromFilename(baseFileName)
+		/*if docID == -1 {
 			return fmt.Errorf("Invalid Document ID found: %s", baseFileName)
-		}
-		if err = t.evaluateText(content, docID); err != nil {
+		}*/
+		if err = t.evaluateText(content, dID+1, baseFileName); err != nil {
 			return err
 		}
 	}
@@ -75,16 +76,18 @@ func (t *Tokenizer) ParseString(fileString string) error {
 		if len(parts) != 4 {
 			return fmt.Errorf("invalid Line")
 		}
-		text := strings.TrimSpace(parts[2]) + " " + strings.TrimSpace(parts[3])
+		//strings.TrimSpace(parts[2]) + " " +
+		text := strings.TrimSpace(parts[3])
+		idName := strings.TrimSpace(parts[0])
 
-		if err := t.evaluateText(text, docCounter+1); err != nil {
+		if err := t.evaluateText(text, docCounter+1, idName); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (t *Tokenizer) evaluateText(text string, docID int) error {
+func (t *Tokenizer) evaluateText(text string, docID int, docName string) error {
 	tokensRaw := strings.Split(text, " ")
 	tokenSub := 0
 
@@ -112,7 +115,7 @@ func (t *Tokenizer) evaluateText(text string, docID int) error {
 	}
 
 	for token, posting := range hm {
-		t.index.AddTerm(token, posting)
+		t.index.AddTerm(token, posting, docName)
 	}
 
 	return nil

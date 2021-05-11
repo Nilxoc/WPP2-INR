@@ -16,7 +16,7 @@ func TestWhenIdxEmptyNoResult(t *testing.T) {
 func TestWhenQueryEqDocResultFound(t *testing.T) {
 	p := createParser()
 	idx := p.Context.Index
-	idx.AddTerm("term", &index.Posting{DocID: 1, Pos: []int64{1}})
+	idx.AddTerm("term", &index.Posting{DocID: 1, Pos: []int64{1}}, "1")
 
 	res := expectResultP(t, "term", p)
 	assert.Equal(t, 1, len(*res.Entry))
@@ -25,9 +25,9 @@ func TestWhenQueryEqDocResultFound(t *testing.T) {
 func TestPhraseQuery(t *testing.T) {
 	p := createParser()
 	idx := p.Context.Index
-	idx.AddTerm("first", &index.Posting{DocID: 1, Pos: []int64{1}})
-	idx.AddTerm("second", &index.Posting{DocID: 1, Pos: []int64{2}})
-	idx.AddTerm("third", &index.Posting{DocID: 1, Pos: []int64{3}})
+	idx.AddTerm("first", &index.Posting{DocID: 1, Pos: []int64{1}}, "1")
+	idx.AddTerm("second", &index.Posting{DocID: 1, Pos: []int64{2}}, "1")
+	idx.AddTerm("third", &index.Posting{DocID: 1, Pos: []int64{3}}, "1")
 
 	res := expectResultP(t, `"first second third"`, p)
 
@@ -39,16 +39,16 @@ func TestPhraseQuery(t *testing.T) {
 func TestAndQuery(t *testing.T) {
 	p := createParser()
 	idx := p.Context.Index
-	idx.AddTerm("deleted", &index.Posting{DocID: 1, Pos: []int64{1}})
-	idx.AddTerm("code", &index.Posting{DocID: 1, Pos: []int64{2}})
-	idx.AddTerm("is", &index.Posting{DocID: 1, Pos: []int64{3}})
-	idx.AddTerm("debugged", &index.Posting{DocID: 1, Pos: []int64{4}})
-	idx.AddTerm("code", &index.Posting{DocID: 1, Pos: []int64{5}})
+	idx.AddTerm("deleted", &index.Posting{DocID: 1, Pos: []int64{1}}, "1")
+	idx.AddTerm("code", &index.Posting{DocID: 1, Pos: []int64{2}}, "1")
+	idx.AddTerm("is", &index.Posting{DocID: 1, Pos: []int64{3}}, "1")
+	idx.AddTerm("debugged", &index.Posting{DocID: 1, Pos: []int64{4}}, "1")
+	idx.AddTerm("code", &index.Posting{DocID: 1, Pos: []int64{5}}, "1")
 
-	idx.AddTerm("debugged", &index.Posting{DocID: 2, Pos: []int64{1}})
-	idx.AddTerm("code", &index.Posting{DocID: 2, Pos: []int64{2}})
+	idx.AddTerm("debugged", &index.Posting{DocID: 2, Pos: []int64{1}}, "1")
+	idx.AddTerm("code", &index.Posting{DocID: 2, Pos: []int64{2}}, "1")
 
-	idx.AddTerm("code", &index.Posting{DocID: 3, Pos: []int64{1}})
+	idx.AddTerm("code", &index.Posting{DocID: 3, Pos: []int64{1}}, "1")
 
 	res := expectResultP(t, `code AND debugged`, p)
 
@@ -61,11 +61,11 @@ func TestAndQuery(t *testing.T) {
 func TestSubexpression(t *testing.T) {
 	p := createParser()
 	idx := p.Context.Index
-	idx.AddTerm("java", &index.Posting{DocID: 1, Pos: []int64{1}})
-	idx.AddTerm("is", &index.Posting{DocID: 1, Pos: []int64{2}})
-	idx.AddTerm("what", &index.Posting{DocID: 2, Pos: []int64{1}})
-	idx.AddTerm("java", &index.Posting{DocID: 2, Pos: []int64{2}})
-	idx.AddTerm("does", &index.Posting{DocID: 3, Pos: []int64{1}})
+	idx.AddTerm("java", &index.Posting{DocID: 1, Pos: []int64{1}}, "1")
+	idx.AddTerm("is", &index.Posting{DocID: 1, Pos: []int64{2}}, "1")
+	idx.AddTerm("what", &index.Posting{DocID: 2, Pos: []int64{1}}, "1")
+	idx.AddTerm("java", &index.Posting{DocID: 2, Pos: []int64{2}}, "1")
+	idx.AddTerm("does", &index.Posting{DocID: 3, Pos: []int64{1}}, "1")
 
 	res := expectResultP(t, "(what OR does) AND java", p)
 	assert.Equal(t, 1, len(*res.Entry))
@@ -74,9 +74,9 @@ func TestSubexpression(t *testing.T) {
 func TestProximity(t *testing.T) {
 	p := createParser()
 	idx := p.Context.Index
-	idx.AddTerm("term1", &index.Posting{DocID: 1, Pos: []int64{1}})
-	idx.AddTerm("term2", &index.Posting{DocID: 1, Pos: []int64{2}})
-	idx.AddTerm("term3", &index.Posting{DocID: 1, Pos: []int64{3}})
+	idx.AddTerm("term1", &index.Posting{DocID: 1, Pos: []int64{1}}, "1")
+	idx.AddTerm("term2", &index.Posting{DocID: 1, Pos: []int64{2}}, "1")
+	idx.AddTerm("term3", &index.Posting{DocID: 1, Pos: []int64{3}}, "1")
 
 	res := expectResultP(t, "term1 /2 term3", p)
 	first := (*res.Entry)[0]

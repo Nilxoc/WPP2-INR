@@ -106,7 +106,7 @@ func main() {
 			cl.Print(fmt.Sprintf("cannot execute query: %s", err.Error()))
 			continue
 		}
-		fmt.Println(res.Entry.String())
+		fmt.Println(res.Entry.String(indexInstance))
 
 	}
 
