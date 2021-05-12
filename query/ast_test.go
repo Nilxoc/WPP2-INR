@@ -62,6 +62,26 @@ func TestCompileSample6(t *testing.T) {
 	testCompile(t, `diet /10 health AND "red wine"`)
 }
 
+func TestInvalidProximityNotCompile(t *testing.T) {
+	testNotCompile(t, `term1 10 term2`)
+}
+
+func TestConsProximityNotCompile(t *testing.T) {
+	testNotCompile(t, `term1 /10 /10 term2`)
+}
+
+func TestWrongBracketsNotCompile(t *testing.T) {
+	testNotCompile(t, `[term1 AND term2]`)
+}
+
+func TestBracketNotClosedNotCompile(t *testing.T) {
+	testNotCompile(t, `(term1 AND term2`)
+}
+
+func TestProximityNotClosedNotCompile(t *testing.T) {
+	testNotCompile(t, `"term1 term2`)
+}
+
 // testCompile validates if the target query compiles
 func testCompile(t *testing.T, q string) {
 	cfg := &config.Config{}
@@ -77,5 +97,22 @@ func testCompile(t *testing.T, q string) {
 		t.Errorf("%s", err)
 	} else {
 		parsed.Print()
+	}
+}
+
+func testNotCompile(t *testing.T, q string) {
+	cfg := &config.Config{}
+	idx := index.NewIndexEmpty(cfg)
+	ctx := Context{
+		Index:  idx,
+		Config: cfg,
+	}
+	parser := AstQueryParser{Context: &ctx}
+
+	_, err := parser.Parse(q)
+	if err != nil {
+		// success
+	} else {
+		t.Errorf("expected compilation error: %s", q)
 	}
 }
