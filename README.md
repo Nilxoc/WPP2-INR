@@ -20,9 +20,9 @@ The following configuration options are available:
 | doc        | Path to the input file (doc_dump.txt)                                                      |         |
 | docs       | Path to the input file's                                                                   |         |
 | dict       | Path to the dictionary (load if no doc specified - create if doc is specified)             |         |
-| k          | size of the k-gram index terms (only relevant if `correction` is `true`)                   | 2       |
+| k          | size of the k-gram index terms                                                             | 2       |
 | r          | threshold of results before spell correction (only relevant if `correction` is `true`)     | 5       |
-| j          | threshold for the jaccard-coefficient  (only relevant if `correction` is `true`)           | 0.2     |
+| j          | threshold for the jaccard-coefficient                                                      | 0.2     |
 | correction | if spell correction is enabled                                                             | `true`  |
 
 ## Queries
