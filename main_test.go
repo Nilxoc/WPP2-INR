@@ -1,12 +1,13 @@
 package main
 
 import (
-	"g1.wpp2.hsnr/inr/boolret/file"
 	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
 	"time"
+
+	"g1.wpp2.hsnr/inr/boolret/file"
 
 	"g1.wpp2.hsnr/inr/boolret/config"
 	"g1.wpp2.hsnr/inr/boolret/query"
@@ -196,6 +197,28 @@ func BenchmarkConstruction(b *testing.B) {
 	b.Run("index-construction", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			err = tokenz.ParseSingleFile(absDocPath)
+			if err != nil {
+				b.Errorf("cannot parse file: %e", err)
+			}
+		}
+	})
+}
+
+func BenchmarkConstructionMultifile(b *testing.B) {
+	cfg := config.DefaultConfig()
+	cfg.PDoc = workDirPath(filepath.Join("prep", "out"))
+
+	idx := index.NewIndexEmpty(cfg)
+	tokenz := tokenizer.InitTokenizer(idx)
+
+	absDocPath, err := file.AbsPath(cfg.PDoc)
+	if err != nil {
+		b.Errorf("cannot create path: %e", err)
+	}
+
+	b.Run("index-construction", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			err = tokenz.ParseMultiFile(absDocPath)
 			if err != nil {
 				b.Errorf("cannot parse file: %e", err)
 			}
