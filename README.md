@@ -61,7 +61,8 @@ Use ``go test -v main_test.go`` to retrieve the Data.
 
 | action                    | ms         |
 |---------------------------|-----------:|
-| file read, index creation | 476.508516 |
+| file read, index creation (single file)| 476.508516 |
+| file read, index creation (multi file)| 1599.979394 |
 
 ### Queries
 
