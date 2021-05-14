@@ -59,9 +59,9 @@ Use ``go test -v main_test.go`` to retrieve the Data.
 
 > Requires ``doc_dump.txt`` to be present in the same path.
 
-| action                    | ms |
-|---------------------------|---:|
-| file read, index creation | 53 |
+| action                    | ms         |
+|---------------------------|-----------:|
+| file read, index creation | 476.508516 |
 
 ### Queries
 
