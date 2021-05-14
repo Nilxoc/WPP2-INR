@@ -193,10 +193,14 @@ func BenchmarkConstruction(b *testing.B) {
 		b.Errorf("cannot create path: %e", err)
 	}
 
-	err = tokenz.ParseSingleFile(absDocPath)
-	if err != nil {
-		b.Errorf("cannot parse file: %e", err)
-	}
+	b.Run("index-construction", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			err = tokenz.ParseSingleFile(absDocPath)
+			if err != nil {
+				b.Errorf("cannot parse file: %e", err)
+			}
+		}
+	})
 }
 
 func workDirPath(path string) string {
