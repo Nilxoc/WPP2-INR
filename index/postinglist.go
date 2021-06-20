@@ -205,7 +205,6 @@ func (pl *PostingList) Difference(other *PostingList) *PostingList {
 			answer = append(answer, (*pl)[p1])
 			p1 += 1
 		} else {
-			answer = append(answer, (*other)[p2])
 			p2 += 1
 		}
 	}
@@ -215,9 +214,5 @@ func (pl *PostingList) Difference(other *PostingList) *PostingList {
 		p1 += 1
 	}
 
-	for p2 < len(*other) {
-		answer = append(answer, (*other)[p2])
-		p1 += 1
-	}
 	return &answer
 }

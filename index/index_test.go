@@ -275,16 +275,16 @@ func TestDifference(t *testing.T) {
 
 	var res = list1.Difference(&list2)
 
-	if len(*res) != 2 {
-		t.Errorf("wrong posting count, expected 2, got %d", len(*res))
+	if len(*res) != 1 {
+		t.Errorf("wrong posting count, expected 1, got %d", len(*res))
 	}
 
-	if (*res)[0].DocID != 4 {
-		t.Errorf("First DocID Wrong, Expected 4, got %d", (*res)[0].DocID)
+	if (*res)[0].DocID != 5 {
+		t.Errorf("First DocID Wrong, Expected 5, got %d", (*res)[0].DocID)
 	}
 
 	var arrayEqual = true
-	var correct = []int64{8, 23, 91}
+	var correct = []int64{6, 9, 20}
 
 	if len((*res)[0].Pos) != len(correct) {
 		arrayEqual = false
@@ -297,27 +297,6 @@ func TestDifference(t *testing.T) {
 	}
 
 	if !arrayEqual {
-		t.Errorf("wrong positions in first posting, expected [1,2,5,6,7,8],got %v", (*res)[0].Pos)
-	}
-
-	if (*res)[1].DocID != 5 {
-		t.Errorf("second docid Wrong, expected 5, got %d", (*res)[1].DocID)
-	}
-
-	arrayEqual = true
-	correct = []int64{6, 9, 20}
-
-	if len((*res)[1].Pos) != len(correct) {
-		arrayEqual = false
-	} else {
-		for i, v := range (*res)[1].Pos {
-			if v != correct[i] {
-				arrayEqual = false
-			}
-		}
-	}
-
-	if !arrayEqual {
-		t.Errorf("wrong positions in fourth posting, expected [1,2,5,6,7,8],got %v", (*res)[3].Pos)
+		t.Errorf("wrong positions in first posting, expected [6 9 20],got %v", (*res)[0].Pos)
 	}
 }
