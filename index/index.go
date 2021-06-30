@@ -2,39 +2,48 @@ package index
 
 import (
 	"fmt"
+	"log"
 	"sort"
 
-	"g1.wpp2.hsnr/inr/boolret/config"
+	"g1.wpp2.hsnr/inr/vecret/config"
 
-	"g1.wpp2.hsnr/inr/boolret/file"
-	"g1.wpp2.hsnr/inr/boolret/index/spell"
+	"g1.wpp2.hsnr/inr/vecret/file"
+	"g1.wpp2.hsnr/inr/vecret/index/spell"
 )
 
 type IndexEntry struct {
-	Term string
-	Docs PostingList
+	Term     string
+	Docs     DocumentRefs
+	DocCount int
 }
 
 type Index struct {
-	Index    map[string]*IndexEntry
-	K        int
-	r        int
-	j        float32
-	kgram    *KGramIndex
-	DocIDMap map[int64]string
+	Index     map[string]*IndexEntry
+	K         int
+	r         int
+	j         float32
+	kgram     *KGramIndex
+	DocIDMap  map[int64]string
+	Documents Documents
+
+	AvgDocLength int
+	DocCount     int
 }
 
 type SpellCorrectionResult struct {
 	Replacements []string
-	Docs         PostingList
+	Docs         DocumentRefs
 }
 
 func NewIndexEmpty(c *config.Config) *Index {
 	idx := &Index{
-		K:        int(c.KGram),
-		r:        c.CSpellThresh,
-		j:        c.JThresh,
-		DocIDMap: make(map[int64]string),
+		K:            int(c.KGram),
+		r:            c.CSpellThresh,
+		j:            c.JThresh,
+		DocIDMap:     make(map[int64]string),
+		Documents:    make(Documents, 0),
+		DocCount:     0,
+		AvgDocLength: 0,
 	}
 	idx.Index = make(map[string]*IndexEntry)
 	idx.kgram = InitKGramIndex(idx.K)
@@ -42,7 +51,7 @@ func NewIndexEmpty(c *config.Config) *Index {
 }
 
 func NewIndexFromFile(cfg *config.Config) (*Index, error) {
-	absDictPath, err := file.AbsPath(cfg.PDict)
+	/*absDictPath, err := file.AbsPath(cfg.PDict)
 	if err != nil {
 		panic(err)
 	}
@@ -61,26 +70,37 @@ func NewIndexFromFile(cfg *config.Config) (*Index, error) {
 	for k, v := range idx.Index {
 		idx.kgram.AddKGram(k, v)
 	}
-	return idx, nil
+	return idx, nil*/
+	return nil, fmt.Errorf("Not Supported for Vector Index!")
+}
+
+func (i *Index) AddDocument(documentId int64, documentLength int, docIDString string) *Document {
+	doc := &Document{DocID: documentId, TotalLength: documentLength}
+	i.Documents[documentId] = doc
+	if _, f := i.DocIDMap[documentId]; !f {
+		i.DocIDMap[documentId] = docIDString
+	}
+	return doc
 }
 
 ///INDEX SPECIFIC METHODS
-func (i *Index) AddTerm(term string, posting *Posting, docIDString string) {
+func (i *Index) AddTerm(term string, count int, documentRef *Document) {
+
+	if documentRef == nil {
+		log.Fatalln("Got empty document Reference!")
+	}
+
 	if entry, found := i.Index[term]; found {
-		entry.Docs = append(entry.Docs, *posting)
-		if _, f := i.DocIDMap[posting.DocID]; !f {
-			i.DocIDMap[posting.DocID] = docIDString
-		}
-		//i.kgram.AddKGram(term, entry)
+		entry.DocCount++
+		entry.Docs = append(entry.Docs, DocumentRef{TermCount: count, Document: documentRef})
 	} else {
 		t := IndexEntry{
 			Term: term,
-			Docs: make(PostingList, 1),
+			Docs: make(DocumentRefs, 1),
 		}
-		t.Docs[0] = *posting
+		t.Docs[0] = DocumentRef{TermCount: count, Document: documentRef}
 		i.Index[term] = &t
-		i.kgram.AddKGram(term, &t)
-		i.DocIDMap[posting.DocID] = docIDString
+		//i.kgram.AddKGram(term, &t)
 	}
 }
 
@@ -201,7 +221,7 @@ func (i *Index) GetTermListCorrected(term string) *SpellCorrectionResult {
 		return &SpellCorrectionResult{Docs: tmp[0].Docs, Replacements: []string{tmp[0].Term}}
 	}
 	tms := make([]string, 0)
-	res := make(PostingList, 0)
+	res := make(DocumentRefs, 0)
 	for _, e := range tmp {
 		res = append(res, e.Docs...)
 		tms = append(tms, e.Term)

@@ -3,8 +3,8 @@ package query
 import (
 	"testing"
 
-	"g1.wpp2.hsnr/inr/boolret/config"
-	"g1.wpp2.hsnr/inr/boolret/index"
+	"g1.wpp2.hsnr/inr/vecret/config"
+	"g1.wpp2.hsnr/inr/vecret/index"
 	"github.com/stretchr/testify/assert"
 )
 

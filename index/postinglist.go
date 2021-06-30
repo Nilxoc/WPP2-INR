@@ -1,5 +1,6 @@
 package index
 
+/*
 import (
 	"fmt"
 	"math"
@@ -216,3 +217,4 @@ func (pl *PostingList) Difference(other *PostingList) *PostingList {
 
 	return &answer
 }
+*/

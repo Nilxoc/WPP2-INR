@@ -1,4 +1,4 @@
-module g1.wpp2.hsnr/inr/boolret
+module g1.wpp2.hsnr/inr/vecret
 
 go 1.16
 

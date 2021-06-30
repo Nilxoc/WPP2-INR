@@ -1,6 +1,6 @@
 package index
 
-import "g1.wpp2.hsnr/inr/boolret/index/spell"
+import "g1.wpp2.hsnr/inr/vecret/index/spell"
 
 type KGramIndex struct {
 	K       int

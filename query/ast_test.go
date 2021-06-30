@@ -1,9 +1,10 @@
 package query
 
 import (
-	"g1.wpp2.hsnr/inr/boolret/config"
-	"g1.wpp2.hsnr/inr/boolret/index"
 	"testing"
+
+	"g1.wpp2.hsnr/inr/vecret/config"
+	"g1.wpp2.hsnr/inr/vecret/index"
 )
 
 // validates if sample queries can be compiled

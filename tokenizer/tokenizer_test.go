@@ -3,9 +3,9 @@ package tokenizer
 import (
 	"testing"
 
-	"g1.wpp2.hsnr/inr/boolret/config"
+	"g1.wpp2.hsnr/inr/vecret/config"
 
-	"g1.wpp2.hsnr/inr/boolret/index"
+	"g1.wpp2.hsnr/inr/vecret/index"
 )
 
 const text1 string = "FOO\tBar\tnewTitle\t\"Title\" Hallo Welt, dies i'm % ist ein Test!"

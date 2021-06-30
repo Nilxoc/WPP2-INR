@@ -3,15 +3,14 @@ package main
 import (
 	"fmt"
 	"log"
+	"strings"
 
-	"g1.wpp2.hsnr/inr/boolret/query"
+	"g1.wpp2.hsnr/inr/vecret/config"
 
-	"g1.wpp2.hsnr/inr/boolret/config"
-
-	"g1.wpp2.hsnr/inr/boolret/cli"
-	"g1.wpp2.hsnr/inr/boolret/file"
-	"g1.wpp2.hsnr/inr/boolret/index"
-	"g1.wpp2.hsnr/inr/boolret/tokenizer"
+	"g1.wpp2.hsnr/inr/vecret/cli"
+	"g1.wpp2.hsnr/inr/vecret/file"
+	"g1.wpp2.hsnr/inr/vecret/index"
+	"g1.wpp2.hsnr/inr/vecret/tokenizer"
 )
 
 func main() {
@@ -71,11 +70,11 @@ func main() {
 	//START CLI
 	cl := cli.Init()
 
-	ctx := query.Context{
+	/*ctx := query.Context{
 		Index:  indexInstance,
 		Config: cfg,
 	}
-	parser := query.AstQueryParser{Context: &ctx}
+	parser := query.AstQueryParser{Context: &ctx}*/
 
 	cl.Print("\r\n\r\n                                       .-') _  _  .-')   \r\n                                      ( OO ) )( \\( -O )  \r\n  ,----.     .-'),-----.   ,-.-') ,--./ ,--,'  ,------.  \r\n '  .-./-') ( OO'  .-.  '  |  |OO)|   \\ |  |\\  |   /`. ' \r\n |  |_( O- )/   |  | |  |  |  |  \\|    \\|  | ) |  /  | | \r\n |  | .--, \\\\_) |  |\\|  |  |  |(_/|  .     |/  |  |_.' | \r\n(|  | '. (_/  \\ |  | |  | ,|  |_.'|  |\\    |   |  .  '.' \r\n |  '--'  |    `'  '-'  '(_|  |   |  | \\   |   |  |\\  \\  \r\n  `------'       `-----'   `--'   `--'  `--'   `--' '--' \r\n\r\n")
 	for {
@@ -95,7 +94,14 @@ func main() {
 
 		in := cl.GetInput()
 
-		q, err := parser.Parse(in)
+		res, err := indexInstance.FastCosine(in, 5)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		fmt.Println(strings.Join(res, " "))
+
+		/*q, err := parser.Parse(in)
 		if err != nil {
 			cl.Print(fmt.Sprintf("cannot parse query '%s': %s", in, err.Error()))
 			continue
@@ -106,7 +112,7 @@ func main() {
 			cl.Print(fmt.Sprintf("cannot execute query: %s", err.Error()))
 			continue
 		}
-		fmt.Println(res.Entry.String(indexInstance))
+		fmt.Println(res.Entry.String(indexInstance))*/
 
 	}
 

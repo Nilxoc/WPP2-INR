@@ -1,7 +1,7 @@
 package file
 
 import (
-	"encoding/gob"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -36,14 +36,15 @@ func GetFileReader(path string) (*os.File, error) {
 }
 
 func SaveIndex(data interface{}, path string) error {
-	file, err := os.Create(path)
+	/*file, err := os.Create(path)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
 	enc := gob.NewEncoder(file)
-	return enc.Encode(data)
+	return enc.Encode(data)*/
+	return fmt.Errorf("not supported with vektor")
 }
 
 func ListFiles(pathD string) ([]string, error) {

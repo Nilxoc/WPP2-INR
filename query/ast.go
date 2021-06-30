@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"g1.wpp2.hsnr/inr/boolret/index"
+	"g1.wpp2.hsnr/inr/vecret/index"
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer/stateful"
 	"github.com/alecthomas/repr"

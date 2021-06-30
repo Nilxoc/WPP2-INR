@@ -7,6 +7,7 @@
 boolret
 doc_dump.txt
 dump.bin
+vecret
 
 # Test binary, built with `go test -c`
 *.test
@@ -17,3 +18,8 @@ dump.bin
 # Dependency directories (remove the comment below to include it)
 # vendor/
 .vscode
+
+## Testdata
+docs.txt
+qrel.txt
+queries.txt

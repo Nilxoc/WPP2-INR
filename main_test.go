@@ -7,13 +7,13 @@ import (
 	"testing"
 	"time"
 
-	"g1.wpp2.hsnr/inr/boolret/file"
+	"g1.wpp2.hsnr/inr/vecret/file"
 
-	"g1.wpp2.hsnr/inr/boolret/config"
-	"g1.wpp2.hsnr/inr/boolret/query"
+	"g1.wpp2.hsnr/inr/vecret/config"
+	"g1.wpp2.hsnr/inr/vecret/query"
 
-	"g1.wpp2.hsnr/inr/boolret/index"
-	"g1.wpp2.hsnr/inr/boolret/tokenizer"
+	"g1.wpp2.hsnr/inr/vecret/index"
+	"g1.wpp2.hsnr/inr/vecret/tokenizer"
 )
 
 func constructIndexForTest(t *testing.T, b *testing.B) *index.Index {

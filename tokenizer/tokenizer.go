@@ -5,8 +5,8 @@ import (
 	"path"
 	"strings"
 
-	"g1.wpp2.hsnr/inr/boolret/file"
-	"g1.wpp2.hsnr/inr/boolret/index"
+	"g1.wpp2.hsnr/inr/vecret/file"
+	"g1.wpp2.hsnr/inr/vecret/index"
 )
 
 type Tokenizer struct {
@@ -73,11 +73,11 @@ func (t *Tokenizer) ParseString(fileString string) error {
 		}
 		//lines: 1: Doc-Name, 2: Doc
 		parts := strings.Split(doc, "\t")
-		if len(parts) != 4 {
+		if len(parts) != 2 {
 			return fmt.Errorf("invalid Line")
 		}
 		//strings.TrimSpace(parts[2]) + " " +
-		text := strings.TrimSpace(parts[3])
+		text := strings.TrimSpace(parts[1])
 		idName := strings.TrimSpace(parts[0])
 
 		if err := t.evaluateText(text, docCounter+1, idName); err != nil {
@@ -88,34 +88,31 @@ func (t *Tokenizer) ParseString(fileString string) error {
 }
 
 func (t *Tokenizer) evaluateText(text string, docID int, docName string) error {
+
 	tokensRaw := strings.Split(text, " ")
 	tokenSub := 0
 
-	hm := make(map[string]*index.Posting)
+	hm := make(map[string]int)
 
-	for i, token := range tokensRaw {
-		token = strings.ToLower(strings.Trim(token, "()\".;=-:,|][{}%/'!?&$§<>-_#+@*"))
+	for _, token := range tokensRaw {
+		token = strings.ToLower(strings.Trim(token, "()\".;=-:,|][{}%/'!?&$§<>_#+@*"))
 
 		if token == "" {
 			tokenSub += 1
 			continue
 		}
 
-		if post, f := hm[token]; f {
-			post.Pos = append(post.Pos, int64((i+1)-tokenSub))
+		if _, f := hm[token]; f {
+			hm[token]++
 		} else {
-			tarr := make([]int64, 1)
-			tarr[0] = int64((i + 1) - tokenSub)
-			hm[token] = &index.Posting{
-				DocID: int64(docID),
-				Pos:   tarr,
-			}
+			hm[token] = 1
 		}
-
 	}
 
-	for token, posting := range hm {
-		t.index.AddTerm(token, posting, docName)
+	document := t.index.AddDocument(int64(docID), len(tokensRaw)-tokenSub, docName)
+
+	for token, count := range hm {
+		t.index.AddTerm(token, count, document)
 	}
 
 	return nil
