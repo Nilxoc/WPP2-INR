@@ -300,3 +300,11 @@ func TestDifference(t *testing.T) {
 		t.Errorf("wrong positions in first posting, expected [6 9 20],got %v", (*res)[0].Pos)
 	}
 }
+
+func TestW2VConstruction(t *testing.T) {
+	index, err := buildIndex()
+	if err != nil {
+		t.Errorf("error building index: %v", err)
+	}
+	t.Logf("%v", index)
+}

@@ -1,3 +1,5 @@
+code.sajari.com/word2vec v1.0.0 h1:gg1Bk3ea3mGPZMS2/qh1iPJM5iotSSHyIxq4gUdlH+0=
+code.sajari.com/word2vec v1.0.0/go.mod h1:Ut8mx+2Q79Js3uGW1+HtbuuUIWoGMAMCOZK06xDly00=
 github.com/alecthomas/participle/v2 v2.0.0-alpha5 h1:visbiIgHjBFJBVkNO5W7lgstKGdW49BxIuv0HY2aGmQ=
 github.com/alecthomas/participle/v2 v2.0.0-alpha5/go.mod h1:Z1zPLDbcGsVsBYsThKXY00i84575bN/nMczzIrU4rWU=
 github.com/alecthomas/repr v0.0.0-20181024024818-d37bc2a10ba1 h1:GDQdwm/gAcJcLAKQQZGOJ4knlw+7rfEQQcmwTbt4p5E=
@@ -10,6 +12,8 @@ github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZN
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJyk=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
+github.com/ziutek/blas v0.0.0-20190227122918-da4ca23e90bb h1:uWiILQloLUVdtPYr1ZZo2zqtlpzo4G8vUpglo/Fs2H8=
+github.com/ziutek/blas v0.0.0-20190227122918-da4ca23e90bb/go.mod h1:J3xKssoVdrwZ2E29fIox/EKxOZWimS7AZ4fOTCFkOLo=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v2 v2.2.2 h1:ZCJp+EgiOT7lHqUV2J862kp8Qj64Jo6az82+3Td9dZw=
 gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
