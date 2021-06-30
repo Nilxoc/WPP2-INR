@@ -26,18 +26,28 @@ func calcTextVec(text string, model *word2Vec.Model) word2Vec.Vector {
 	parts := strings.Split(text, " ")
 	wordMap := model.Map(parts)
 
+	wordWeight := make(map[string]float64)
+
+	for _, word := range parts {
+		if val, ok := wordWeight[word]; ok {
+			wordWeight[word] = val + 1
+		} else {
+			wordWeight[word] = 1
+		}
+	}
+
 	var docVec []float64
 
 	wordCount := float64(0)
 
-	for _, vec := range wordMap {
+	for word, vec := range wordMap {
 		if docVec == nil {
 			docVec = make([]float64, len(vec))
 		}
 		for i := range vec {
-			docVec[i] += float64(vec[i])
+			docVec[i] += wordWeight[word] * float64(vec[i])
 		}
-		wordCount += 1
+		wordCount += wordWeight[word]
 	}
 
 	for i, elem := range docVec {

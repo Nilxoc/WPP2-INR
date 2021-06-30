@@ -23,9 +23,7 @@ func w2vMain(cfg *config.Config) {
 
 	cl.Print("Ready, please enter first query")
 	for {
-		fmt.Print(">")
 		res := w2vInd.EvaluateQuery(cl.GetInput())
-		fmt.Print("\n")
 		for i := 0; i < 10; i++ {
 			fmt.Print(res[i].Doc)
 			fmt.Print(", ")
