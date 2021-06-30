@@ -302,9 +302,11 @@ func TestDifference(t *testing.T) {
 }
 
 func TestW2VConstruction(t *testing.T) {
-	index, err := buildIndex()
+	index, err := BuildIndex("/home/colin/Documents/WPP2/WPP2-INR/docs.txt", "/home/colin/Documents/WPP2/WPP2-INR/binGlove.bin")
 	if err != nil {
 		t.Errorf("error building index: %v", err)
 	}
 	t.Logf("%v", index)
+
+	_ = index.EvaluateQuery("diabetes")
 }

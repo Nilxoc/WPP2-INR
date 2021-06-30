@@ -22,6 +22,10 @@ type Config struct {
 	CSpellThresh int
 	//Wether to use only doc_dump.txt instead of folder of textfiles
 	UseSingleFileInput bool
+
+	Word2Vec bool
+
+	ModelPath string
 }
 
 func DefaultConfig() *Config {
@@ -33,6 +37,8 @@ func DefaultConfig() *Config {
 		CSpell:             true,
 		CSpellThresh:       5,
 		UseSingleFileInput: false,
+		Word2Vec:           false,
+		ModelPath:          "",
 	}
 	return &defaultCfg
 }
@@ -53,6 +59,8 @@ func parseConfig(c *Config) (*Config, error) {
 	flag.BoolVar(&c.CSpell, "correction", true, "enable error correction")
 	var docPath string
 	flag.StringVar(&docPath, "doc", "", "path to input file (txt)")
+	flag.StringVar(&c.ModelPath, "model", "", "path to word2vec model")
+	flag.BoolVar(&c.Word2Vec, "word2vec", false, "Switch to Word 2 Vec Retrieval")
 	flag.Parse()
 
 	c.KGram = uint8(k)

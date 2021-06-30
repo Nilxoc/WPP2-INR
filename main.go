@@ -14,13 +14,35 @@ import (
 	"g1.wpp2.hsnr/inr/boolret/tokenizer"
 )
 
-func main() {
+func w2vMain(cfg *config.Config) {
+	fmt.Println("Running in Word2Vec Mode")
 
+	w2vInd, _ := index.BuildIndex(cfg.PDoc, cfg.ModelPath)
+	cl := cli.Init()
+	cl.Print("\r\n\r\n                                       .-') _  _  .-')   \r\n                                      ( OO ) )( \\( -O )  \r\n  ,----.     .-'),-----.   ,-.-') ,--./ ,--,'  ,------.  \r\n '  .-./-') ( OO'  .-.  '  |  |OO)|   \\ |  |\\  |   /`. ' \r\n |  |_( O- )/   |  | |  |  |  |  \\|    \\|  | ) |  /  | | \r\n |  | .--, \\\\_) |  |\\|  |  |  |(_/|  .     |/  |  |_.' | \r\n(|  | '. (_/  \\ |  | |  | ,|  |_.'|  |\\    |   |  .  '.' \r\n |  '--'  |    `'  '-'  '(_|  |   |  | \\   |   |  |\\  \\  \r\n  `------'       `-----'   `--'   `--'  `--'   `--' '--' \r\n\r\n")
+
+	cl.Print("Ready, please enter first query")
+	for {
+		fmt.Print(">")
+		res := w2vInd.EvaluateQuery(cl.GetInput())
+		fmt.Print("\n")
+		for i := 0; i < 10; i++ {
+			fmt.Print(res[i].Doc)
+			fmt.Print(", ")
+		}
+		fmt.Print("\n")
+	}
+}
+
+func main() {
 	cfg, err := config.Parse()
 	if err != nil {
 		log.Panic(err)
 	}
-
+	if cfg.Word2Vec {
+		w2vMain(cfg)
+		return
+	}
 	var indexInstance *index.Index
 
 	docPath := cfg.PDoc

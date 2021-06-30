@@ -2,6 +2,7 @@ package index
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	word2Vec "code.sajari.com/word2vec"
@@ -12,11 +13,12 @@ type w2VIndex struct {
 	//This Index Maps DOCUMENTS,not Terms, to their respective Vectors
 	//A Document Vector is the normalized Vector of all its terms
 	Index map[string]word2Vec.Vector
+	Texts map[string]string
 	Model *word2Vec.Model
 }
 
 type resultEntry struct {
-	doc    string
+	Doc    string
 	cosSim float32
 }
 
@@ -24,14 +26,16 @@ func calcTextVec(text string, model *word2Vec.Model) word2Vec.Vector {
 	parts := strings.Split(text, " ")
 	wordMap := model.Map(parts)
 
-	var docVec word2Vec.Vector
-	wordCount := float32(0)
+	var docVec []float64
+
+	wordCount := float64(0)
 
 	for _, vec := range wordMap {
 		if docVec == nil {
-			docVec = vec
-		} else {
-			docVec.Add(1, vec)
+			docVec = make([]float64, len(vec))
+		}
+		for i := range vec {
+			docVec[i] += float64(vec[i])
 		}
 		wordCount += 1
 	}
@@ -40,20 +44,22 @@ func calcTextVec(text string, model *word2Vec.Model) word2Vec.Vector {
 		docVec[i] = elem / wordCount
 	}
 
-	return docVec
+	var resVec word2Vec.Vector = make(word2Vec.Vector, len(docVec))
+	for i := range resVec {
+		resVec[i] = float32(docVec[i])
+	}
+
+	return resVec
 }
 
-func buildIndex() (*w2VIndex, error) {
-	filename := "/home/colin/Documents/WPP2/WPP2-INR/docs.txt"
-	modelPath := "/home/colin/Documents/WPP2/WPP2-INR/binGlove.bin"
-
+func BuildIndex(filename string, modelPath string) (*w2VIndex, error) {
 	modelReader, err := file.GetFileReader(modelPath)
 	if err != nil {
 		return nil, fmt.Errorf("error reading model: %v", err)
 	}
 
 	model, err := word2Vec.FromReader(modelReader)
-	index := w2VIndex{Index: make(map[string]word2Vec.Vector), Model: model}
+	index := w2VIndex{Index: make(map[string]word2Vec.Vector), Model: model, Texts: make(map[string]string)}
 
 	if err != nil {
 		return nil, fmt.Errorf("error building model: %v", err)
@@ -70,9 +76,26 @@ func buildIndex() (*w2VIndex, error) {
 		if len(sections) < 2 {
 			continue
 		}
-		vec := calcTextVec(sections[1], model)
+		vec := calcTextVec(sections[1], index.Model)
 		index.Index[sections[0]] = vec
+		index.Texts[sections[0]] = sections[1]
 	}
 
 	return &index, nil
+}
+
+func (index *w2VIndex) EvaluateQuery(query string) []resultEntry {
+	queryVec := calcTextVec(query, index.Model)
+
+	results := make([]resultEntry, len(index.Index))
+
+	for doc, docVec := range index.Index {
+		results = append(results, resultEntry{Doc: doc, cosSim: queryVec.Dot(docVec) / (queryVec.Norm() * docVec.Norm())})
+	}
+
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].cosSim > results[j].cosSim
+	})
+
+	return results
 }
