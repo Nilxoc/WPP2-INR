@@ -85,7 +85,7 @@ func BuildIndex(filename string, modelPath string) (*w2VIndex, error) {
 	lines := strings.Split(content, "\n")
 	for _, line := range lines {
 		sections := strings.Split(line, "\t")
-		if len(sections) < 2 {
+		if len(sections) < 2 || sections[0] == "" {
 			continue
 		}
 		vec := calcTextVec(sections[1], index.Model)

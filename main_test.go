@@ -4,9 +4,12 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 
+	"g1.wpp2.hsnr/inr/boolret/eval"
 	"g1.wpp2.hsnr/inr/boolret/file"
 
 	"g1.wpp2.hsnr/inr/boolret/config"
@@ -234,4 +237,93 @@ func workDirPath(path string) string {
 		panic(err)
 	}
 	return docSource
+}
+
+func TestW2VAccuracy(t *testing.T) {
+	w2vInd, err := index.BuildIndex(workDirPath("docs.txt"), workDirPath("gnews.bin"))
+	if err != nil {
+		t.Errorf("Couldn't construct index, %v", err)
+	}
+
+	steps := [4]int32{5, 10, 20, 50}
+
+	totMap := float64(0)
+
+	//queries, err := loadQueries()
+	allRels, _ := eval.ReadRelevance(workDirPath("qrel.txt"))
+	queries := [5]Query{{QueryID: "PLAIN-121", Query: "berries to prevent muscle soreness", RelevantDocuments: (*allRels)[121]},
+		{QueryID: "PLAIN-1021", Query: "diabetes", RelevantDocuments: (*allRels)[1021]},
+		{QueryID: "PLAIN-15", Query: "why do heart doctors favor surgery and drugs over diet", RelevantDocuments: (*allRels)[15]},
+		{QueryID: "PLAIN-145", Query: "fukushima radiation and seafood", RelevantDocuments: (*allRels)[145]},
+		{QueryID: "PLAIN-1336", Query: "heart rate variability", RelevantDocuments: (*allRels)[1336]}}
+
+	for _, query := range queries {
+		recalls := make([]float64, 0, 4)
+		precisions := make([]float64, 0, 4)
+		f1s := make([]float64, 0, 4)
+
+		results := w2vInd.EvaluateQuery(query.Query)
+
+		i64Results := make([]int64, len(results))
+
+		for i, res := range results {
+			if res.Doc == "" {
+				continue
+			}
+			i64Results[i] = parseId(res.Doc)
+		}
+
+		for _, step := range steps {
+			confMat := eval.CalculateConfusion(i64Results[:step], query.RelevantDocuments)
+
+			recalls = append(recalls, confMat.Recall())
+			precisions = append(precisions, confMat.Precision())
+			f1s = append(f1s, confMat.F1Measure())
+		}
+
+		confMat := eval.CalculateConfusion(i64Results, query.RelevantDocuments)
+
+		rPrec := confMat.RPrecision()
+
+		t.Logf("%.2f", rPrec)
+		totMap += eval.MAPScore(i64Results, query.RelevantDocuments)
+	}
+
+	mapScore := totMap / float64(len(queries))
+
+	t.Logf("%.2f", mapScore)
+}
+
+type Query struct {
+	QueryID           string
+	Query             string
+	RelevantDocuments []int64
+}
+
+func parseId(input string) int64 {
+	parts := strings.Split(input, "-")
+	res, _ := strconv.Atoi(parts[1])
+
+	return int64(res)
+}
+
+func loadQueries() ([]Query, error) {
+	allRels, err := eval.ReadRelevance(workDirPath("qrel.txt"))
+	if err != nil {
+		return nil, err
+	}
+	file, err := file.ReadAsString(workDirPath("queries.txt"))
+	if err != nil {
+		return nil, err
+	}
+	lines := strings.Split(file, "\n")
+	res := make([]Query, len(lines))
+	for i, line := range lines {
+		parts := strings.Split(strings.TrimSpace(line), "\t")
+		if len(parts) < 2 {
+			continue
+		}
+		res[i] = Query{QueryID: parts[0], Query: parts[1], RelevantDocuments: (*allRels)[parseId(parts[0])]}
+	}
+	return res, nil
 }

@@ -2,9 +2,11 @@ package eval
 
 import (
 	"fmt"
-	"g1.wpp2.hsnr/inr/boolret/file"
+	"math"
 	"strconv"
 	"strings"
+
+	"g1.wpp2.hsnr/inr/boolret/file"
 )
 
 // RelevanceMap Maps Query IDs to slice of relevant documents
@@ -17,7 +19,7 @@ func parseId(input string) int64 {
 	return int64(res)
 }
 
-func readRelevance(path string) (*RelevanceMap, error) {
+func ReadRelevance(path string) (*RelevanceMap, error) {
 	content, err := file.ReadAsString(path)
 	if err != nil {
 		return nil, fmt.Errorf("error reading file: %v", err)
@@ -58,10 +60,9 @@ func CalculateConfusion(found []int64, relevant []int64) ConfM {
 	for _, docID := range found {
 		contains := false
 
-		for j, relID := range relevant {
+		for _, relID := range relevant {
 			if docID == relID {
 				contains = true
-				relevant = append(relevant[:j], relevant[j+1:]...)
 				break
 			}
 		}
@@ -73,7 +74,7 @@ func CalculateConfusion(found []int64, relevant []int64) ConfM {
 		}
 	}
 
-	fn = int32(len(relevant))
+	fn = int32(len(relevant)) - tp
 
 	return ConfM{tp, fp, fn}
 }
@@ -88,7 +89,11 @@ func (m *ConfM) Recall() float64 {
 
 func (m *ConfM) FMeasure(a float64) float64 {
 	b2 := (1 - a) / a
-	return ((b2 + 1) * m.Precision() * m.Recall()) / (b2*m.RPrecision() + m.Recall())
+	res := ((b2 + 1) * m.Precision() * m.Recall()) / (b2*m.Precision() + m.Recall())
+	if math.IsNaN(res) {
+		return 0
+	}
+	return res
 }
 
 func (m *ConfM) F1Measure() float64 {
@@ -97,4 +102,28 @@ func (m *ConfM) F1Measure() float64 {
 
 func (m *ConfM) RPrecision() float64 {
 	return float64(m.tp) / float64(m.tp+m.fn)
+}
+
+func positionOf(val int64, list []int64) int {
+	for i, curr := range list {
+		if curr == val {
+			return i
+		}
+	}
+
+	return -1
+}
+
+func MAPScore(found []int64, relevant []int64) float64 {
+	if len(relevant) == 0 {
+		return 0
+	}
+
+	sum := float64(0)
+	for _, relVal := range relevant {
+		conf := CalculateConfusion(found[:positionOf(relVal, found)+1], relevant)
+		sum += conf.Precision()
+	}
+
+	return sum / float64(len(relevant))
 }
