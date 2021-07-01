@@ -11,7 +11,7 @@ import (
 
 type w2VIndex struct {
 	//This Index Maps DOCUMENTS,not Terms, to their respective Vectors
-	//A Document Vector is the normalized Vector of all its terms
+	//A Document Vector is the average Vector of all its terms
 	Index map[string]word2Vec.Vector
 	Texts map[string]string
 	Model *word2Vec.Model
@@ -22,6 +22,7 @@ type resultEntry struct {
 	cosSim float32
 }
 
+//Calculates the average vector of a given Bag of Words(a query or a document)
 func calcTextVec(text string, model *word2Vec.Model) word2Vec.Vector {
 	parts := strings.Split(text, " ")
 	wordMap := model.Map(parts)
@@ -62,6 +63,7 @@ func calcTextVec(text string, model *word2Vec.Model) word2Vec.Vector {
 	return resVec
 }
 
+//Constructs an Index from the given file using the given model file
 func BuildIndex(filename string, modelPath string) (*w2VIndex, error) {
 	modelReader, err := file.GetFileReader(modelPath)
 	if err != nil {
@@ -94,6 +96,7 @@ func BuildIndex(filename string, modelPath string) (*w2VIndex, error) {
 	return &index, nil
 }
 
+//Evaluates a query on the index and returns a ranked list of results
 func (index *w2VIndex) EvaluateQuery(query string) []resultEntry {
 	queryVec := calcTextVec(query, index.Model)
 
