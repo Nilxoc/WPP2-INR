@@ -1,21 +1,21 @@
 package main
 
 import (
-	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
+	"strings"
 	"testing"
-	"time"
-
-	"g1.wpp2.hsnr/inr/vecret/file"
 
 	"g1.wpp2.hsnr/inr/vecret/config"
-	"g1.wpp2.hsnr/inr/vecret/query"
+	"g1.wpp2.hsnr/inr/vecret/eval"
+	"g1.wpp2.hsnr/inr/vecret/file"
+	"g1.wpp2.hsnr/inr/vecret/tokenizer"
 
 	"g1.wpp2.hsnr/inr/vecret/index"
-	"g1.wpp2.hsnr/inr/vecret/tokenizer"
 )
 
+/*
 func constructIndexForTest(t *testing.T, b *testing.B) *index.Index {
 	//TODO Sollte wahrscheinlich error verwenden wenn doc_dump nicht
 	//gefunden
@@ -224,7 +224,7 @@ func BenchmarkConstructionMultifile(b *testing.B) {
 			}
 		}
 	})
-}
+}*/
 
 func workDirPath(path string) string {
 	_, testFnPath, _, _ := runtime.Caller(0)
@@ -234,4 +234,97 @@ func workDirPath(path string) string {
 		panic(err)
 	}
 	return docSource
+}
+
+func TestW2VAccuracy(t *testing.T) {
+	indexInstance := index.NewIndexEmpty(&config.Config{KGram: 5})
+	tokenizer := tokenizer.InitTokenizer(indexInstance)
+	if err := tokenizer.ParseSingleFile(workDirPath("prep/docs.txt")); err != nil {
+		panic(err)
+	}
+
+	steps := [4]int32{5, 10, 20, 50}
+
+	totMap := float64(0)
+
+	//queries, err := loadQueries()
+	allRels, _ := eval.ReadRelevance(workDirPath("prep/qrel.txt"))
+	queries := [5]Query{{QueryID: "PLAIN-121", Query: "berries to prevent muscle soreness", RelevantDocuments: (*allRels)[121]},
+		{QueryID: "PLAIN-1021", Query: "diabetes", RelevantDocuments: (*allRels)[1021]},
+		{QueryID: "PLAIN-15", Query: "why do heart doctors favor surgery and drugs over diet", RelevantDocuments: (*allRels)[15]},
+		{QueryID: "PLAIN-145", Query: "fukushima radiation and seafood", RelevantDocuments: (*allRels)[145]},
+		{QueryID: "PLAIN-1336", Query: "heart rate variability", RelevantDocuments: (*allRels)[1336]}}
+
+	for _, query := range queries {
+		recalls := make([]float64, 0, 4)
+		precisions := make([]float64, 0, 4)
+		f1s := make([]float64, 0, 4)
+
+		results, err := indexInstance.FastCosine(query.Query, 1000000) //EvaluateQuery(query.Query)
+		if err != nil {
+			panic(err)
+		}
+
+		i64Results := make([]int64, len(results))
+
+		for i, res := range results {
+			if res == "" {
+				continue
+			}
+			i64Results[i] = parseId(res)
+		}
+
+		for _, step := range steps {
+			confMat := eval.CalculateConfusion(i64Results[:step], query.RelevantDocuments)
+
+			recalls = append(recalls, confMat.Recall())
+			precisions = append(precisions, confMat.Precision())
+			f1s = append(f1s, confMat.F1Measure())
+		}
+
+		confMat := eval.CalculateConfusion(i64Results, query.RelevantDocuments)
+
+		rPrec := confMat.RPrecision()
+
+		t.Logf("RPRec: %.2f", rPrec)
+		totMap += eval.MAPScore(i64Results, query.RelevantDocuments)
+	}
+
+	mapScore := totMap / float64(len(queries))
+
+	t.Logf("MAP: %.2f", mapScore)
+}
+
+type Query struct {
+	QueryID           string
+	Query             string
+	RelevantDocuments []int64
+}
+
+func parseId(input string) int64 {
+	parts := strings.Split(input, "-")
+	res, _ := strconv.Atoi(parts[1])
+
+	return int64(res)
+}
+
+func loadQueries() ([]Query, error) {
+	allRels, err := eval.ReadRelevance(workDirPath("qrel.txt"))
+	if err != nil {
+		return nil, err
+	}
+	file, err := file.ReadAsString(workDirPath("queries.txt"))
+	if err != nil {
+		return nil, err
+	}
+	lines := strings.Split(file, "\n")
+	res := make([]Query, len(lines))
+	for i, line := range lines {
+		parts := strings.Split(strings.TrimSpace(line), "\t")
+		if len(parts) < 2 {
+			continue
+		}
+		res[i] = Query{QueryID: parts[0], Query: parts[1], RelevantDocuments: (*allRels)[parseId(parts[0])]}
+	}
+	return res, nil
 }
