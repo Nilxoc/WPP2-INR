@@ -3,6 +3,7 @@ package tokenizer
 import (
 	"fmt"
 	"path"
+	"strconv"
 	"strings"
 
 	"g1.wpp2.hsnr/inr/vecret/file"
@@ -65,7 +66,7 @@ func (t *Tokenizer) ParseString(fileString string) error {
 
 	//Creating a Array of lines for each doc
 	docs := strings.Split(fileString, "\n")
-	for docCounter, doc := range docs {
+	for _, doc := range docs {
 		//Loop over lines (documents)
 		doc = strings.TrimSpace(doc)
 		if doc == "" {
@@ -80,7 +81,10 @@ func (t *Tokenizer) ParseString(fileString string) error {
 		text := strings.TrimSpace(parts[1])
 		idName := strings.TrimSpace(parts[0])
 
-		if err := t.evaluateText(text, docCounter+1, idName); err != nil {
+		idParts := strings.Split(idName, "-")
+		id, _ := strconv.Atoi(idParts[1])
+
+		if err := t.evaluateText(text, id, idName); err != nil {
 			return err
 		}
 	}
