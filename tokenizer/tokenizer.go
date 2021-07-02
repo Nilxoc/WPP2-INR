@@ -82,7 +82,10 @@ func (t *Tokenizer) ParseString(fileString string) error {
 		idName := strings.TrimSpace(parts[0])
 
 		idParts := strings.Split(idName, "-")
-		id, _ := strconv.Atoi(idParts[1])
+		id, err := strconv.Atoi(idParts[1])
+		if err != nil {
+			panic(err)
+		}
 
 		if err := t.evaluateText(text, id, idName); err != nil {
 			return err

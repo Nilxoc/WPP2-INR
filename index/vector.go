@@ -18,7 +18,7 @@ type TermBag map[string]BagTerm
 
 func makeTermBag(query string, idx *Index) (TermBag, map[int64]float64) {
 	termList := strings.Split(query, " ")
-	bag := make(TermBag, 0)
+	bag := make(TermBag)
 	documentsWeightMap := make(map[int64]float64)
 	for _, t := range termList { //Range over all Terms
 		if v, f := bag[t]; f {
@@ -50,6 +50,9 @@ func (idx *Index) Weighting(query TermBag, doc DocumentRef, k float64) float64 {
 func (idx *Index) FastCosine(query string, n int) ([]string, error) {
 	bag, scores := makeTermBag(query, idx)
 
+	fmt.Println(bag)
+	fmt.Println(scores)
+
 	for _, term := range bag {
 		for _, doc := range term.Docs {
 			scores[int64(doc.Document.DocID)] += idx.Weighting(bag, doc, float64(idx.K)) // Increase Weighting with formular
@@ -79,7 +82,7 @@ func (idx *Index) FastCosine(query string, n int) ([]string, error) {
 		if i >= n {
 			break
 		}
-		res = append(res, idx.GetDocDisplay(d.ID))
+		res[i] = idx.GetDocDisplay(d.ID)
 	}
 	return res, nil
 

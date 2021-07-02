@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -238,7 +239,7 @@ func workDirPath(path string) string {
 }
 
 func TestW2VAccuracy(t *testing.T) {
-	indexInstance := index.NewIndexEmpty(&config.Config{KGram: 5})
+	indexInstance := index.NewIndexEmpty(&config.Config{KGram: 1})
 	tokenizer := tokenizer.InitTokenizer(indexInstance)
 	if err := tokenizer.ParseSingleFile(workDirPath("prep/docs.txt")); err != nil {
 		panic(err)
@@ -266,13 +267,17 @@ func TestW2VAccuracy(t *testing.T) {
 			panic(err)
 		}
 
-		i64Results := make([]int64, len(results))
+		fmt.Println("Results: ", len(results))
+		fmt.Println(results)
 
-		for i, res := range results {
+		i64Results := make([]int64, 0)
+
+		for _, res := range results {
 			if res == "" {
 				continue
 			}
-			i64Results[i] = parseId(res)
+			i64Results = append(i64Results, parseId(res))
+			//i64Results[i] = parseId(res)
 		}
 
 		for _, step := range steps {
