@@ -1,24 +1,20 @@
 package main
 
 import (
-	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	"g1.wpp2.hsnr/inr/boolret/eval"
 	"g1.wpp2.hsnr/inr/boolret/file"
-
-	"g1.wpp2.hsnr/inr/boolret/config"
-	"g1.wpp2.hsnr/inr/boolret/query"
+	"github.com/Arafatk/glot"
 
 	"g1.wpp2.hsnr/inr/boolret/index"
-	"g1.wpp2.hsnr/inr/boolret/tokenizer"
 )
 
+/*
 func constructIndexForTest(t *testing.T, b *testing.B) *index.Index {
 	//TODO Sollte wahrscheinlich error verwenden wenn doc_dump nicht
 	//gefunden
@@ -227,7 +223,7 @@ func BenchmarkConstructionMultifile(b *testing.B) {
 			}
 		}
 	})
-}
+}*/
 
 func workDirPath(path string) string {
 	_, testFnPath, _, _ := runtime.Caller(0)
@@ -281,6 +277,11 @@ func TestW2VAccuracy(t *testing.T) {
 			f1s = append(f1s, confMat.F1Measure())
 		}
 
+		stepF64 := []float64{5, 10, 20, 50}
+		doPlot(query.QueryID, "recall", stepF64, recalls)
+		doPlot(query.QueryID, "precisions", stepF64, precisions)
+		doPlot(query.QueryID, "f1s", stepF64, f1s)
+
 		confMat := eval.CalculateConfusion(i64Results, query.RelevantDocuments)
 
 		rPrec := confMat.RPrecision()
@@ -326,4 +327,15 @@ func loadQueries() ([]Query, error) {
 		res[i] = Query{QueryID: parts[0], Query: parts[1], RelevantDocuments: (*allRels)[parseId(parts[0])]}
 	}
 	return res, nil
+}
+
+func doPlot(query string, wtype string, pointsX, pointsY []float64) {
+	plot, _ := glot.NewPlot(2, false, false)
+	plot.AddPointGroup(wtype, "lines", [][]float64{pointsX, pointsY})
+	plot.SetTitle(query)
+	plot.SetXLabel("Steps")
+	plot.SetYLabel(wtype)
+	plot.SetXrange(0, 50)
+	plot.SetYrange(0, 1)
+	plot.SavePlot("out/" + query + "_" + wtype + ".png")
 }

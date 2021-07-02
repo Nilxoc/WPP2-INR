@@ -1,5 +1,7 @@
 code.sajari.com/word2vec v1.0.0 h1:gg1Bk3ea3mGPZMS2/qh1iPJM5iotSSHyIxq4gUdlH+0=
 code.sajari.com/word2vec v1.0.0/go.mod h1:Ut8mx+2Q79Js3uGW1+HtbuuUIWoGMAMCOZK06xDly00=
+github.com/Arafatk/glot v0.0.0-20180312013246-79d5219000f0 h1:buG0FAUZtOwl9c+RdnQo3cfZhTnY2OY24J3t+jpeb9Y=
+github.com/Arafatk/glot v0.0.0-20180312013246-79d5219000f0/go.mod h1:o0O8gFiTfVp4g5QcQJ1iMLw6ROiy9BITaiBbEiwz9h8=
 github.com/alecthomas/participle/v2 v2.0.0-alpha5 h1:visbiIgHjBFJBVkNO5W7lgstKGdW49BxIuv0HY2aGmQ=
 github.com/alecthomas/participle/v2 v2.0.0-alpha5/go.mod h1:Z1zPLDbcGsVsBYsThKXY00i84575bN/nMczzIrU4rWU=
 github.com/alecthomas/repr v0.0.0-20181024024818-d37bc2a10ba1 h1:GDQdwm/gAcJcLAKQQZGOJ4knlw+7rfEQQcmwTbt4p5E=
