@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -267,9 +266,6 @@ func TestW2VAccuracy(t *testing.T) {
 			panic(err)
 		}
 
-		fmt.Println("Results: ", len(results))
-		fmt.Println(results)
-
 		i64Results := make([]int64, 0)
 
 		for _, res := range results {
@@ -303,7 +299,7 @@ func TestW2VAccuracy(t *testing.T) {
 
 	mapScore := totMap / float64(len(queries))
 
-	t.Logf("MAP: %.2f", mapScore)
+	t.Logf("MAP: %.5f", mapScore)
 }
 
 type Query struct {

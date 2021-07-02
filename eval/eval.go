@@ -80,6 +80,9 @@ func CalculateConfusion(found []int64, relevant []int64) ConfM {
 }
 
 func (m *ConfM) Precision() float64 {
+	if m.tp == 0 && m.fp == 0 {
+		return 0
+	}
 	return float64(m.tp) / float64(m.tp+m.fp)
 }
 

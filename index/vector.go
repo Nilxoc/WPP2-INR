@@ -50,9 +50,6 @@ func (idx *Index) Weighting(query TermBag, doc DocumentRef, k float64) float64 {
 func (idx *Index) FastCosine(query string, n int) ([]string, error) {
 	bag, scores := makeTermBag(query, idx)
 
-	fmt.Println(bag)
-	fmt.Println(scores)
-
 	for _, term := range bag {
 		for _, doc := range term.Docs {
 			scores[int64(doc.Document.DocID)] += idx.Weighting(bag, doc, float64(idx.K)) // Increase Weighting with formular
@@ -76,7 +73,6 @@ func (idx *Index) FastCosine(query string, n int) ([]string, error) {
 		n = len(docList)
 	}
 
-	fmt.Printf("Found total of %d\n", len(docList))
 	res := make([]string, n)
 	for i, d := range docList {
 		if i >= n {
