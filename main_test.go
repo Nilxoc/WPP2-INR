@@ -238,7 +238,7 @@ func workDirPath(path string) string {
 }
 
 func TestW2VAccuracy(t *testing.T) {
-	indexInstance := index.NewIndexEmpty(&config.Config{KGram: 1})
+	indexInstance := index.NewIndexEmpty(&config.Config{KGram: 2})
 	tokenizer := tokenizer.InitTokenizer(indexInstance)
 	if err := tokenizer.ParseSingleFile(workDirPath("prep/docs.txt")); err != nil {
 		panic(err)
@@ -289,7 +289,12 @@ func TestW2VAccuracy(t *testing.T) {
 		doPlot(query.QueryID, "precisions", stepF64, precisions)
 		doPlot(query.QueryID, "f1s", stepF64, f1s)
 
-		confMat := eval.CalculateConfusion(i64Results, query.RelevantDocuments)
+		rPrecBound := len(query.RelevantDocuments)
+		if len(i64Results) < rPrecBound {
+			rPrecBound = len(i64Results) //Results list can be shorter than list of relevant documents
+		}
+
+		confMat := eval.CalculateConfusion(i64Results[:rPrecBound], query.RelevantDocuments)
 
 		rPrec := confMat.RPrecision()
 

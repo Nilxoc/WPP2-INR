@@ -25,3 +25,5 @@ qrel.txt
 queries.txt
 out
 .DS_Store
+gnews.bin
+.idea/workspace.xml
