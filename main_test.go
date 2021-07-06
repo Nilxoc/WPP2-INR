@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -236,7 +237,7 @@ func workDirPath(path string) string {
 }
 
 func TestW2VAccuracy(t *testing.T) {
-	w2vInd, err := index.BuildIndex(workDirPath("docs.txt"), workDirPath("gnews.bin"))
+	w2vInd, err := index.BuildIndex(workDirPath("docs.txt"), workDirPath("binGlove.bin"))
 	if err != nil {
 		t.Errorf("Couldn't construct index, %v", err)
 	}
@@ -282,16 +283,17 @@ func TestW2VAccuracy(t *testing.T) {
 		doPlot(query.QueryID, "precisions", stepF64, precisions)
 		doPlot(query.QueryID, "f1s", stepF64, f1s)
 
-		confMat := eval.CalculateConfusion(i64Results, query.RelevantDocuments)
+		confMat := eval.CalculateConfusion(i64Results[:len(query.RelevantDocuments)], query.RelevantDocuments)
 
-		rPrec := confMat.RPrecision()
-
-		t.Logf("%.2f", rPrec)
+		rPrec := confMat.Recall()
+		stringToFile("out/"+query.QueryID+"rPrec", strconv.FormatFloat(rPrec, 'f', 5, 64), t)
+		t.Logf("%s %.2f", query.QueryID, rPrec)
 		totMap += eval.MAPScore(i64Results, query.RelevantDocuments)
 	}
 
 	mapScore := totMap / float64(len(queries))
 
+	stringToFile("out/MAP", strconv.FormatFloat(mapScore, 'f', 5, 64), t)
 	t.Logf("%.2f", mapScore)
 }
 
@@ -338,4 +340,23 @@ func doPlot(query string, wtype string, pointsX, pointsY []float64) {
 	plot.SetXrange(0, 50)
 	plot.SetYrange(0, 1)
 	plot.SavePlot("out/" + query + "_" + wtype + ".png")
+}
+
+func stringToFile(outpath string, content string, t *testing.T) {
+	f, err := os.Create(outpath)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	_, err = f.WriteString(content)
+	if err != nil {
+		f.Close()
+		t.Error(err)
+	}
+
+	err = f.Close()
+	if err != nil {
+		t.Error(err)
+	}
 }

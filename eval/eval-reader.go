@@ -100,10 +100,6 @@ func (m *ConfM) F1Measure() float64 {
 	return m.FMeasure(0.5)
 }
 
-func (m *ConfM) RPrecision() float64 {
-	return float64(m.tp) / float64(m.tp+m.fn)
-}
-
 func positionOf(val int64, list []int64) int {
 	for i, curr := range list {
 		if curr == val {
