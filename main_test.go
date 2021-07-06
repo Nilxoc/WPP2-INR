@@ -238,7 +238,7 @@ func workDirPath(path string) string {
 }
 
 func TestW2VAccuracy(t *testing.T) {
-	indexInstance := index.NewIndexEmpty(&config.Config{KGram: 2})
+	indexInstance := index.NewIndexEmpty(&config.Config{KGram: 1})
 	tokenizer := tokenizer.InitTokenizer(indexInstance)
 	if err := tokenizer.ParseSingleFile(workDirPath("prep/docs.txt")); err != nil {
 		panic(err)
