@@ -46,7 +46,7 @@ func NewIndexEmpty(c *config.Config) *Index {
 		AvgDocLength: 0,
 	}
 	idx.Index = make(map[string]*IndexEntry)
-	idx.kgram = InitKGramIndex(idx.K)
+	//idx.kgram = InitKGramIndex(idx.K)
 	return idx
 }
 
@@ -75,7 +75,7 @@ func NewIndexFromFile(cfg *config.Config) (*Index, error) {
 }
 
 func (i *Index) AddDocument(documentId int64, documentLength int, docIDString string) *Document {
-	doc := &Document{DocID: documentId, TotalLength: documentLength}
+	doc := &Document{DocID: documentId, TotalLength: documentLength, TermRefs: make([]*DocumentRef, 0)}
 	i.Documents[documentId] = doc
 	if _, f := i.DocIDMap[documentId]; !f {
 		i.DocIDMap[documentId] = docIDString
@@ -92,14 +92,18 @@ func (i *Index) AddTerm(term string, count int, documentRef *Document) {
 
 	if entry, found := i.Index[term]; found {
 		entry.DocCount++
-		entry.Docs = append(entry.Docs, DocumentRef{TermCount: count, Document: documentRef})
+		docRef := &DocumentRef{TermCount: count, Document: documentRef, TermRef: entry}
+		entry.Docs = append(entry.Docs, docRef)
+		documentRef.TermRefs = append(documentRef.TermRefs, docRef)
 	} else {
 		t := IndexEntry{
 			Term: term,
 			Docs: make(DocumentRefs, 1),
 		}
-		t.Docs[0] = DocumentRef{TermCount: count, Document: documentRef}
+		docRef := &DocumentRef{TermCount: count, Document: documentRef, TermRef: &t}
+		t.Docs[0] = docRef
 		i.Index[term] = &t
+		documentRef.TermRefs = append(documentRef.TermRefs, docRef)
 		//i.kgram.AddKGram(term, &t)
 	}
 }

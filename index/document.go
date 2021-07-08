@@ -5,16 +5,20 @@ import "fmt"
 type Document struct {
 	DocID       int64
 	TotalLength int
+	//TermRefs is a list of references to documentRef for all terms in this Document mapping document -> []term
+	TermRefs []*DocumentRef
 }
 
 type Documents map[int64]*Document
 
 type DocumentRef struct {
-	Document  *Document
+	Document *Document
+	//TermCount is the amount of occurences this term occurs in a document (TermFrequency)
 	TermCount int
+	TermRef   *IndexEntry
 }
 
-type DocumentRefs []DocumentRef
+type DocumentRefs []*DocumentRef
 
 func (d *Document) String() string {
 	return fmt.Sprintf("%d", d.DocID)
