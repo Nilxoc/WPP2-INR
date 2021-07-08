@@ -55,7 +55,10 @@ func makeTermBag(query string, idx *Index) (TermBag, map[int64]float64, map[int6
 func (idx *Index) Weighting(query TermBag, doc DocumentRef, k float64) float64 {
 	var sum float64 = 0
 	for _, term := range query { //TODO falsche länge - Euklidische länge
-		sum += float64(term.Count) * ((float64(doc.TermCount)) / (float64(doc.TermCount) + k*((float64(doc.Document.TotalLength))/(float64(idx.AvgDocLength))))) * math.Log10((float64(idx.DocCount))/(float64(term.DocCount)))
+
+		t := float64(term.Count) * ((float64(doc.TermCount)) / (float64(doc.TermCount) + k*((float64(doc.Document.TotalLength))/(float64(idx.AvgDocLength))))) * math.Log10((float64(idx.DocCount))/(float64(term.DocCount)))
+		sum += t
+		//DEBUG: fmt.Printf("CALC %d * (%d/(%d,%.2f * (%d/%d))) * log(%d)/%d = %.5f\n", term.Count, doc.TermCount, doc.TermCount, k, doc.Document.TotalLength, idx.AvgDocLength, idx.DocCount, term.DocCount, t)
 	}
 	return sum
 }
@@ -76,6 +79,12 @@ func (idx *Index) FastCosine(query string, n int) ([]string, error) {
 	docList := make([]DocumentListEntry, 0)
 
 	for k, score := range scores {
+		if math.IsNaN(score) {
+			fmt.Println("NAN VALUE DETECTED! Document: ", k, "  Score: ", score)
+		}
+		if math.IsNaN(euklDocLengths[k]) {
+			fmt.Println("NAN VALUE DETECTED! Document: ", k, "  Length: ", euklDocLengths[k])
+		}
 		docList = append(docList, DocumentListEntry{ID: k, Score: score / euklDocLengths[k]})
 	}
 	sort.Slice(docList, func(i, j int) bool {

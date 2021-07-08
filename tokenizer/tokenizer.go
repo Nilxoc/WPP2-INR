@@ -2,6 +2,8 @@ package tokenizer
 
 import (
 	"fmt"
+	"log"
+	"math"
 	"path"
 	"strconv"
 	"strings"
@@ -41,6 +43,7 @@ func getIDFromFilename(name string) int {
 */
 
 func (t *Tokenizer) ParseMultiFile(pathD string) error {
+	log.Fatalln("Not Implemented!")
 	docs, err := file.ListFiles(pathD)
 	if err != nil {
 		return err
@@ -55,7 +58,7 @@ func (t *Tokenizer) ParseMultiFile(pathD string) error {
 		/*if docID == -1 {
 			return fmt.Errorf("Invalid Document ID found: %s", baseFileName)
 		}*/
-		if err = t.evaluateText(content, dID+1, baseFileName); err != nil {
+		if _, err = t.evaluateText(content, dID+1, baseFileName); err != nil {
 			return err
 		}
 	}
@@ -63,6 +66,8 @@ func (t *Tokenizer) ParseMultiFile(pathD string) error {
 }
 
 func (t *Tokenizer) ParseString(fileString string) error {
+
+	sumDocLen := 0
 
 	//Creating a Array of lines for each doc
 	docs := strings.Split(fileString, "\n")
@@ -87,14 +92,19 @@ func (t *Tokenizer) ParseString(fileString string) error {
 			panic(err)
 		}
 
-		if err := t.evaluateText(text, id, idName); err != nil {
+		docLen, err := t.evaluateText(text, id, idName)
+		if err != nil {
 			return err
 		}
+		sumDocLen += docLen
 	}
+
+	t.index.AvgDocLength = int(math.Round(float64(sumDocLen) / float64(len(docs))))
+	t.index.DocCount = len(docs)
 	return nil
 }
 
-func (t *Tokenizer) evaluateText(text string, docID int, docName string) error {
+func (t *Tokenizer) evaluateText(text string, docID int, docName string) (int, error) {
 
 	tokensRaw := strings.Split(text, " ")
 	tokenSub := 0
@@ -122,5 +132,5 @@ func (t *Tokenizer) evaluateText(text string, docID int, docName string) error {
 		t.index.AddTerm(token, count, document)
 	}
 
-	return nil
+	return len(tokensRaw) - tokenSub, nil
 }
