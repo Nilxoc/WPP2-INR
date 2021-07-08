@@ -8,19 +8,22 @@ import (
 )
 
 type BagTerm struct {
-	//	term     string
+	//DocCount document count where this term occures
 	DocCount uint
-	Count    uint
-	Docs     DocumentRefs
+	//Total occurence count of this term
+	Count uint
+	//Reference to documents
+	Docs DocumentRefs
 }
 
 type TermBag map[string]BagTerm
 
-func calcEuklDocLength(doc *Document) float64 {
+func (idx *Index) calcEuklDocLength(doc *Document, k float64) float64 {
 	sum := 0.0
 	//count := float64(len(doc.TermRefs)) // n
 	for _, t := range doc.TermRefs { // i...n
-		sum += math.Pow(float64(t.TermCount), 2) //x_i^2
+		sum += math.Pow(idx.DocumentTermWeighting(*t.TermRef, *t, k), 2) // Term Weight ** 2
+		//sum += math.Pow(float64(t.TermCount), 2) //x_i^2
 	}
 	return math.Sqrt(sum) // square root
 }
@@ -43,13 +46,17 @@ func makeTermBag(query string, idx *Index) (TermBag, map[int64]float64, map[int6
 				for _, d := range termEntry.Docs {
 					documentsWeightMap[int64(d.Document.DocID)] = 0
 					if _, f := documentEuklLengthMap[d.Document.DocID]; !f {
-						documentEuklLengthMap[d.Document.DocID] = calcEuklDocLength(d.Document)
+						documentEuklLengthMap[d.Document.DocID] = idx.calcEuklDocLength(d.Document, float64(idx.K))
 					}
 				}
 			}
 		}
 	}
 	return bag, documentsWeightMap, documentEuklLengthMap
+}
+
+func (idx *Index) DocumentTermWeighting(term IndexEntry, doc DocumentRef, k float64) float64 {
+	return ((float64(doc.TermCount)) / (float64(doc.TermCount) + k*((float64(doc.Document.TotalLength))/(float64(idx.AvgDocLength))))) * math.Log10((float64(idx.DocCount))/(float64(term.DocCount)))
 }
 
 func (idx *Index) Weighting(query TermBag, doc DocumentRef, k float64) float64 {
@@ -84,6 +91,9 @@ func (idx *Index) FastCosine(query string, n int) ([]string, error) {
 		}
 		if math.IsNaN(euklDocLengths[k]) {
 			fmt.Println("NAN VALUE DETECTED! Document: ", k, "  Length: ", euklDocLengths[k])
+		}
+		if score/euklDocLengths[k] > 1.0 {
+			fmt.Println("Score > 1!", score, euklDocLengths[k], score/euklDocLengths[k])
 		}
 		docList = append(docList, DocumentListEntry{ID: k, Score: score / euklDocLengths[k]})
 	}
